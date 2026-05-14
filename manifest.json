@@ -1,0 +1,25 @@
+{
+  "name": "Moje slovíčka",
+  "short_name": "Slovíčka",
+  "description": "Mobilní aplikace pro procvičování anglických slovíček.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f3ea",
+  "theme_color": "#16756b",
+  "lang": "cs",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%2316756b'/%3E%3Cpath fill='white' d='M48 52h72a24 24 0 0 1 24 24v64H72a24 24 0 0 1-24-24V52Zm24 28v14h48V80H72Zm0 28v14h34v-14H72Z'/%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='96' fill='%2316756b'/%3E%3Cpath fill='white' d='M128 136h192a64 64 0 0 1 64 64v176H192a64 64 0 0 1-64-64V136Zm64 76v38h128v-38H192Zm0 76v38h90v-38h-90Z'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
