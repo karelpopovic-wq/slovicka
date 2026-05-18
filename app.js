@@ -737,11 +737,13 @@ function renderAudio() {
         <h2>Nepravidelná slovesa 1</h2>
         <p class="muted">be až find · přibližně 7 minut</p>
         <audio controls preload="metadata" src="audio/nepravidelna-slovesa-1.wav"></audio>
+        <a class="btn secondary" href="audio/nepravidelna-slovesa-1.wav" target="_blank" rel="noopener">Otevřít stopu</a>
       </article>
       <article class="audio-card">
         <h2>Nepravidelná slovesa 2</h2>
         <p class="muted">get až write · přibližně 7 minut</p>
         <audio controls preload="metadata" src="audio/nepravidelna-slovesa-2.wav"></audio>
+        <a class="btn secondary" href="audio/nepravidelna-slovesa-2.wav" target="_blank" rel="noopener">Otevřít stopu</a>
       </article>
     </section>
   `;
