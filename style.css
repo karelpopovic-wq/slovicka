@@ -106,7 +106,8 @@ button {
 .panel,
 .word-row,
 .deck-row,
-.summary-card {
+.summary-card,
+.audio-card {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
@@ -206,9 +207,24 @@ button {
 }
 
 .deck-row h2,
-.word-row h2 {
+.word-row h2,
+.audio-card h2 {
   margin: 0;
   font-size: 1.12rem;
+}
+
+.audio-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.audio-card p {
+  margin: 0;
+}
+
+.audio-card audio {
+  width: 100%;
 }
 
 .row-meta {
@@ -230,7 +246,7 @@ button {
 
 .row-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
 }
 
@@ -380,5 +396,9 @@ button {
   .button-grid .danger,
   .button-grid .wide {
     grid-column: span 2;
+  }
+
+  .row-actions {
+    grid-template-columns: repeat(3, 1fr);
   }
 }
