@@ -1,7 +1,7 @@
 "use strict";
 
 const STORAGE_KEY = "vocabTrainerData";
-const PRESET_VERSION = 6;
+const PRESET_VERSION = 7;
 const SMART_LIMIT = 20;
 const TODAY_LABEL = new Date().toLocaleDateString("cs-CZ", {
   day: "numeric",
@@ -12,6 +12,32 @@ const TODAY_LABEL = new Date().toLocaleDateString("cs-CZ", {
 const IMPORT_TEMPLATE = `deck;tags;en;pronounce;cz;example;note
 Lekce 2;cestování, fráze;go away;gou əwéj;odjet pryč;We went away for the weekend.;
 Lekce 2;jídlo;a picky eater;ə pyki ítr;vybíravý v jídle;My son is a picky eater.;`;
+
+const GPT_IMPORT_PROMPT = `Připrav mi slovíčka pro import do mé aplikace.
+
+Výstup musí být pouze CSV se středníkem, bez komentářů okolo.
+
+Formát:
+deck;tags;en;pronounce;cz;example;note
+
+Pravidla:
+- deck = název lekce, například Lekce 3
+- tags = krátké štítky oddělené čárkou, například cestování, fráze, jídlo
+- en = anglické slovíčko nebo fráze
+- pronounce = jednoduchý český fonetický přepis
+- cz = český překlad
+- example = krátká anglická věta
+- note = jen pokud je potřeba vysvětlení, jinak prázdné
+- nevkládej nepravidelná slovesa, ta už jsou v aplikaci
+- když jde o frázi, dej štítek fráze
+- když jde o slovíčko, které mi nejde, přidej štítek neznám
+- pokud stejné slovíčko patří do více lekcí, napiš lekce do deck oddělené čárkou, například Lekce 1, Lekce 2
+- nepoužívej středník uvnitř hodnot
+- každý řádek musí mít přesně 7 sloupců
+- ponech hlavičku jako první řádek
+
+Tady jsou moje slovíčka / poznámky:
+[vložím text]`;
 
 const IRREGULAR_VERBS = [
   ["be", "bí", "was / were", "woz / wér", "být", "I am at home.", "I was at home yesterday.", "been"],
@@ -502,6 +528,7 @@ function render() {
     problems: renderProblems,
     export: renderExport,
     audio: renderAudio,
+    gptPrompt: renderGptPrompt,
   };
   app.innerHTML = (views[state.view] || renderHome)();
 }
@@ -529,6 +556,7 @@ function renderHome() {
         <button class="btn" type="button" data-action="decks">Lekce</button>
         <button class="btn secondary" type="button" data-action="tags">Štítky</button>
         <button class="btn secondary" type="button" data-action="import">Import</button>
+        <button class="btn secondary" type="button" data-action="gpt-prompt">Prompt pro GPT</button>
         <button class="btn secondary" type="button" data-action="audio">Poslech</button>
         <button class="btn secondary" type="button" data-action="problems">Problémová slovíčka</button>
         <button class="btn secondary" type="button" data-action="export">Export/Záloha</button>
@@ -593,7 +621,22 @@ function renderImport() {
         <textarea class="textarea" id="importText" spellcheck="false" placeholder="${escapeHtml(IMPORT_TEMPLATE)}">${escapeHtml(state.importText)}</textarea>
       </div>
       <button class="btn" type="button" data-action="do-import">Importovat</button>
+      <button class="btn secondary" type="button" data-action="gpt-prompt">Zobrazit prompt pro GPT</button>
       ${result ? renderImportResult(result) : ""}
+    </section>
+  `;
+}
+
+function renderGptPrompt() {
+  return `
+    ${header("Prompt pro GPT")}
+    <section class="stack">
+      <div class="notice">
+        Tenhle text vlož do GPT spolu se svými poznámkami. Výsledek potom zkopíruj do obrazovky Import.
+      </div>
+      <textarea class="textarea prompt-box" id="gptPromptText" readonly>${escapeHtml(GPT_IMPORT_PROMPT)}</textarea>
+      <button class="btn" type="button" data-action="copy-gpt-prompt">Kopírovat prompt</button>
+      <button class="btn secondary" type="button" data-action="import">Přejít na Import</button>
     </section>
   `;
 }
@@ -924,6 +967,20 @@ async function copyExport() {
   }
 }
 
+async function copyGptPrompt() {
+  try {
+    await navigator.clipboard.writeText(GPT_IMPORT_PROMPT);
+    alert("Prompt pro GPT je zkopírovaný.");
+  } catch (error) {
+    const box = document.querySelector("#gptPromptText");
+    if (box) {
+      box.focus();
+      box.select();
+    }
+    alert("Kopírování se nepovedlo. Text je označený, můžete ho zkopírovat ručně.");
+  }
+}
+
 function downloadExport() {
   const blob = new Blob([toCsv(state.words)], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -948,6 +1005,7 @@ app.addEventListener("click", (event) => {
   if (action === "decks") navigate("decks");
   if (action === "tags") navigate("tags");
   if (action === "import") navigate("import");
+  if (action === "gpt-prompt") navigate("gptPrompt");
   if (action === "audio") navigate("audio");
   if (action === "smart-practice") startSmartPractice();
   if (action === "problems") navigate("problems");
@@ -976,6 +1034,7 @@ app.addEventListener("click", (event) => {
   if (action === "mark-wrong") markCurrent(false);
   if (action === "mark-right") markCurrent(true);
   if (action === "copy-export") copyExport();
+  if (action === "copy-gpt-prompt") copyGptPrompt();
   if (action === "download-export") downloadExport();
 });
 

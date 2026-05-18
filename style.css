@@ -384,6 +384,11 @@ button {
   white-space: pre;
 }
 
+.prompt-box {
+  min-height: 520px;
+  white-space: pre-wrap;
+}
+
 @media (min-width: 520px) {
   .stats-grid-four {
     grid-template-columns: repeat(4, 1fr);
