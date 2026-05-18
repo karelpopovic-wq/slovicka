@@ -1,7 +1,7 @@
 "use strict";
 
 const STORAGE_KEY = "vocabTrainerData";
-const PRESET_VERSION = 4;
+const PRESET_VERSION = 5;
 const TODAY_LABEL = new Date().toLocaleDateString("cs-CZ", {
   day: "numeric",
   month: "numeric",
@@ -472,6 +472,7 @@ function render() {
     practice: renderPractice,
     problems: renderProblems,
     export: renderExport,
+    audio: renderAudio,
   };
   app.innerHTML = (views[state.view] || renderHome)();
 }
@@ -491,10 +492,14 @@ function renderHome() {
         <div class="stat"><strong>${tagCount}</strong><span>štítků</span></div>
         <div class="stat"><strong>${problemCount}</strong><span>problémových</span></div>
       </div>
+      <div class="notice">
+        Slovíčka jsou uložená jen v tomto zařízení. Co importuješ na počítači, není automaticky v telefonu. Pro přenos použij Export/Záloha a na telefonu vlož CSV do Importu.
+      </div>
       <div class="button-grid">
         <button class="btn" type="button" data-action="decks">Lekce</button>
         <button class="btn secondary" type="button" data-action="tags">Štítky</button>
         <button class="btn secondary" type="button" data-action="import">Import</button>
+        <button class="btn secondary" type="button" data-action="audio">Poslech</button>
         <button class="btn secondary" type="button" data-action="problems">Problémová slovíčka</button>
         <button class="btn secondary" type="button" data-action="export">Export/Záloha</button>
         <button class="btn danger wide" type="button" data-action="delete-all">Smazat všechna data</button>
@@ -551,10 +556,10 @@ function renderImport() {
     <section class="stack">
       <div class="panel stack">
         <div class="import-help">
-          <strong>Formát pro ChatGPT</strong>
-          <p class="muted">Použij deck, tags a řádky ve tvaru slovíčko [výslovnost] = překlad. Větu a poznámku přidej pod slovíčko.</p>
+          <strong>Import na tomto zařízení</strong>
+          <p class="muted">Vložená slovíčka se uloží jen tady. Pro přenos z počítače otevři Export/Záloha, zkopíruj CSV a vlož ho sem na telefonu.</p>
         </div>
-        <textarea class="textarea" id="importText" spellcheck="false" placeholder="deck: Lekce 2&#10;tags: cestování, fráze&#10;&#10;go away [gou əwéj] = odjet pryč&#10;sentence: We went away for the weekend.">${escapeHtml(state.importText)}</textarea>
+        <textarea class="textarea" id="importText" spellcheck="false" placeholder="deck;tags;en;pronounce;cz;example;note&#10;Lekce 2;cestování, fráze;go away;gou əwéj;odjet pryč;We went away for the weekend.;">${escapeHtml(state.importText)}</textarea>
       </div>
       <button class="btn" type="button" data-action="do-import">Importovat</button>
       ${result ? renderImportResult(result) : ""}
@@ -711,9 +716,33 @@ function renderExport() {
   return `
     ${header("Export/Záloha")}
     <section class="stack">
+      <div class="notice">
+        Tohle je záloha slovíček z tohoto zařízení. Pokud chceš slovíčka dostat do telefonu, zkopíruj text níže a vlož ho v telefonu do Importu.
+      </div>
       <textarea class="textarea export-box" id="exportText" readonly>${escapeHtml(toCsv(state.words))}</textarea>
       <button class="btn" type="button" data-action="copy-export">Kopírovat do schránky</button>
       <button class="btn secondary" type="button" data-action="download-export">Stáhnout zálohu</button>
+    </section>
+  `;
+}
+
+function renderAudio() {
+  return `
+    ${header("Poslech")}
+    <section class="stack">
+      <div class="notice">
+        Dvě poslechové stopy pro past simple. Každá věta zazní dvakrát anglicky, potom je pauza a český překlad.
+      </div>
+      <article class="audio-card">
+        <h2>Nepravidelná slovesa 1</h2>
+        <p class="muted">be až find · přibližně 7 minut</p>
+        <audio controls preload="metadata" src="audio/nepravidelna-slovesa-1.wav"></audio>
+      </article>
+      <article class="audio-card">
+        <h2>Nepravidelná slovesa 2</h2>
+        <p class="muted">get až write · přibližně 7 minut</p>
+        <audio controls preload="metadata" src="audio/nepravidelna-slovesa-2.wav"></audio>
+      </article>
     </section>
   `;
 }
@@ -858,6 +887,7 @@ app.addEventListener("click", (event) => {
   if (action === "decks") navigate("decks");
   if (action === "tags") navigate("tags");
   if (action === "import") navigate("import");
+  if (action === "audio") navigate("audio");
   if (action === "problems") navigate("problems");
   if (action === "export") navigate("export");
   if (action === "delete-all") deleteAll();
