@@ -107,7 +107,8 @@ button {
 .word-row,
 .deck-row,
 .summary-card,
-.audio-card {
+.audio-card,
+.listen-status {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
@@ -225,6 +226,27 @@ button {
 
 .audio-card audio {
   width: 100%;
+}
+
+.listen-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.listen-status {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.listen-status h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.listen-status p {
+  margin: 0;
 }
 
 .row-meta {
@@ -387,6 +409,10 @@ button {
 .prompt-box {
   min-height: 520px;
   white-space: pre-wrap;
+}
+
+.listen-box {
+  min-height: 360px;
 }
 
 @media (min-width: 520px) {

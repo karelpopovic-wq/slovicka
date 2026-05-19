@@ -1,7 +1,8 @@
 "use strict";
 
 const STORAGE_KEY = "vocabTrainerData";
-const PRESET_VERSION = 7;
+const LISTEN_STORAGE_KEY = "vocabTrainerListenText";
+const PRESET_VERSION = 8;
 const SMART_LIMIT = 20;
 const TODAY_LABEL = new Date().toLocaleDateString("cs-CZ", {
   day: "numeric",
@@ -37,6 +38,45 @@ Pravidla:
 - ponech hlavičku jako první řádek
 
 Tady jsou moje slovíčka / poznámky:
+[vložím text]`;
+
+const LISTEN_TEMPLATE = `title: Past simple - moje věty
+repeat: 2
+pauseAfterEnglish: 2
+pauseBeforeCzech: 3
+
+bought = koupil
+EN: I bought a new phone.
+CZ: Koupil jsem si nový telefon.
+
+went = šel / jel
+EN: We went to Prague yesterday.
+CZ: Včera jsme jeli do Prahy.`;
+
+const GPT_LISTEN_PROMPT = `Připrav mi podklad pro poslech do mé aplikace na učení angličtiny.
+
+Výstup musí být pouze čistý text v tomto formátu, bez komentářů okolo:
+
+title: Název poslechu
+repeat: 2
+pauseAfterEnglish: 2
+pauseBeforeCzech: 3
+
+anglické slovo nebo fráze = český překlad
+EN: krátká anglická věta
+CZ: český překlad věty
+
+Pravidla:
+- EN věta má být přirozená, krátká a vhodná pro poslech.
+- CZ věta musí přesně odpovídat anglické větě.
+- Každý blok musí mít řádek EN a hned pod ním řádek CZ.
+- Pokud procvičujeme slovesa v minulém čase, dej na řádek nad větou tvar v past simple, například bought = koupil.
+- Připrav zhruba 10 minut poslechu.
+- Raději používej kratší věty než dlouhé souvětí.
+- Nepiš odrážky, číslování ani vysvětlení.
+- Nepoužívej středníky jako oddělovače, toto není CSV.
+
+Téma / moje poznámky:
 [vložím text]`;
 
 const IRREGULAR_VERBS = [
@@ -75,7 +115,17 @@ const state = {
   importText: "",
   importResult: null,
   practice: null,
+  customListen: {
+    text: loadListenText(),
+    parsed: null,
+    index: 0,
+    playing: false,
+    currentStep: "",
+  },
 };
+
+let listenRunId = 0;
+const listenTimers = new Set();
 
 function createId() {
   if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -111,6 +161,23 @@ function saveWords(words = state.words) {
     presetVersion: PRESET_VERSION,
     words: normalizeWords(words),
   }));
+}
+
+function loadListenText() {
+  try {
+    return localStorage.getItem(LISTEN_STORAGE_KEY) || LISTEN_TEMPLATE;
+  } catch (error) {
+    console.warn("Text poslechu se nepodařilo načíst.", error);
+    return LISTEN_TEMPLATE;
+  }
+}
+
+function saveListenText(text) {
+  try {
+    localStorage.setItem(LISTEN_STORAGE_KEY, text);
+  } catch (error) {
+    console.warn("Text poslechu se nepodařilo uložit.", error);
+  }
 }
 
 function normalizeWords(words) {
@@ -413,6 +480,88 @@ function addImportError(errors, index, text, message) {
   errors.push({ line: index + 1, text, message });
 }
 
+function parseListenText(text) {
+  const lines = String(text || "").split(/\r?\n/);
+  const result = {
+    title: "Vlastní poslech",
+    repeat: 2,
+    pauseAfterEnglish: 2,
+    pauseBeforeCzech: 3,
+    items: [],
+    errors: [],
+  };
+  let currentWord = null;
+  let pendingItem = null;
+
+  lines.forEach((rawLine, index) => {
+    const original = rawLine;
+    const line = normalize(rawLine);
+    if (!line) return;
+
+    const settingMatch = line.match(/^(title|repeat|pauseAfterEnglish|pauseBeforeCzech)\s*:\s*(.+)$/i);
+    if (settingMatch) {
+      const key = settingMatch[1].toLowerCase();
+      const value = normalize(settingMatch[2]);
+      if (key === "title") result.title = value || result.title;
+      if (key === "repeat") result.repeat = clampNumber(value, 1, 4, 2);
+      if (key === "pauseafterenglish") result.pauseAfterEnglish = clampNumber(value, 0, 10, 2);
+      if (key === "pausebeforeczech") result.pauseBeforeCzech = clampNumber(value, 0, 12, 3);
+      return;
+    }
+
+    const enMatch = line.match(/^EN\s*:\s*(.+)$/i);
+    if (enMatch) {
+      if (pendingItem && !pendingItem.cz) {
+        result.errors.push({ line: index + 1, text: original, message: "Předchozí EN věta nemá český řádek CZ." });
+      }
+      pendingItem = {
+        wordEn: currentWord?.en || "",
+        wordCz: currentWord?.cz || "",
+        en: normalize(enMatch[1]),
+        cz: "",
+      };
+      result.items.push(pendingItem);
+      return;
+    }
+
+    const czMatch = line.match(/^CZ\s*:\s*(.+)$/i);
+    if (czMatch) {
+      if (!pendingItem || pendingItem.cz) {
+        result.errors.push({ line: index + 1, text: original, message: "Řádek CZ nemá nad sebou odpovídající EN." });
+        return;
+      }
+      pendingItem.cz = normalize(czMatch[1]);
+      return;
+    }
+
+    const wordMatch = line.match(/^(.+?)\s*=\s*(.+)$/);
+    if (wordMatch) {
+      currentWord = {
+        en: normalize(wordMatch[1]),
+        cz: normalize(wordMatch[2]),
+      };
+      pendingItem = null;
+      return;
+    }
+
+    result.errors.push({ line: index + 1, text: original, message: "Řádek není nastavení, slovíčko ani EN/CZ věta." });
+  });
+
+  result.items = result.items.filter((item) => {
+    if (item.en && item.cz) return true;
+    result.errors.push({ line: "-", text: item.en, message: "EN věta nemá český překlad CZ." });
+    return false;
+  });
+
+  return result;
+}
+
+function clampNumber(value, min, max, fallback) {
+  const number = Number(String(value).replace(",", "."));
+  if (!Number.isFinite(number)) return fallback;
+  return Math.min(max, Math.max(min, number));
+}
+
 function getDeckNames(word) {
   return uniqueList(Array.isArray(word.decks) && word.decks.length ? word.decks : [word.deck]);
 }
@@ -505,6 +654,7 @@ function goBack() {
     if (state.practice?.source === "smart") return navigate("home");
     return navigate("decks");
   }
+  if (state.view === "listenPrompt") return navigate("customListen");
   navigate("home");
 }
 
@@ -529,6 +679,8 @@ function render() {
     export: renderExport,
     audio: renderAudio,
     gptPrompt: renderGptPrompt,
+    customListen: renderCustomListen,
+    listenPrompt: renderListenPrompt,
   };
   app.innerHTML = (views[state.view] || renderHome)();
 }
@@ -558,6 +710,7 @@ function renderHome() {
         <button class="btn secondary" type="button" data-action="import">Import</button>
         <button class="btn secondary" type="button" data-action="gpt-prompt">Prompt pro GPT</button>
         <button class="btn secondary" type="button" data-action="audio">Poslech</button>
+        <button class="btn secondary" type="button" data-action="custom-listen">Vlastní poslech</button>
         <button class="btn secondary" type="button" data-action="problems">Problémová slovíčka</button>
         <button class="btn secondary" type="button" data-action="export">Export/Záloha</button>
         <button class="btn danger wide" type="button" data-action="delete-all">Smazat všechna data</button>
@@ -637,6 +790,20 @@ function renderGptPrompt() {
       <textarea class="textarea prompt-box" id="gptPromptText" readonly>${escapeHtml(GPT_IMPORT_PROMPT)}</textarea>
       <button class="btn" type="button" data-action="copy-gpt-prompt">Kopírovat prompt</button>
       <button class="btn secondary" type="button" data-action="import">Přejít na Import</button>
+    </section>
+  `;
+}
+
+function renderListenPrompt() {
+  return `
+    ${header("Prompt pro poslech")}
+    <section class="stack">
+      <div class="notice">
+        Tenhle prompt použij v GPT, když chceš připravit věty k poslechu. Výsledek vlož do obrazovky Vlastní poslech.
+      </div>
+      <textarea class="textarea prompt-box" id="listenPromptText" readonly>${escapeHtml(GPT_LISTEN_PROMPT)}</textarea>
+      <button class="btn" type="button" data-action="copy-listen-prompt">Kopírovat prompt</button>
+      <button class="btn secondary" type="button" data-action="custom-listen">Přejít na Vlastní poslech</button>
     </section>
   `;
 }
@@ -809,6 +976,7 @@ function renderAudio() {
       <div class="notice">
         Dvě poslechové stopy pro past simple. Každá věta zazní dvakrát anglicky, potom je pauza a český překlad.
       </div>
+      <button class="btn" type="button" data-action="custom-listen">Vlastní poslech z textu</button>
       <article class="audio-card">
         <h2>Nepravidelná slovesa 1</h2>
         <p class="muted">be až find · přibližně 7 minut</p>
@@ -821,6 +989,59 @@ function renderAudio() {
         <audio controls preload="metadata" src="audio/nepravidelna-slovesa-2.wav"></audio>
         <a class="btn secondary" href="audio/nepravidelna-slovesa-2.wav" target="_blank" rel="noopener">Otevřít stopu</a>
       </article>
+    </section>
+  `;
+}
+
+function renderCustomListen() {
+  const listen = state.customListen;
+  const parsed = listen.parsed || parseListenText(listen.text);
+  const current = parsed.items[listen.index];
+  const progress = parsed.items.length ? `${Math.min(listen.index + 1, parsed.items.length)} / ${parsed.items.length}` : "0 / 0";
+
+  return `
+    ${header("Vlastní poslech")}
+    <section class="stack">
+      <div class="notice">
+        Vlož text z GPT ve formátu EN/CZ. Aplikace bude číst anglickou větu, pauzu, anglickou větu znovu, delší pauzu a český překlad.
+      </div>
+      <div class="panel stack">
+        <div class="import-help">
+          <strong>${escapeHtml(parsed.title)}</strong>
+          <p class="muted">${parsed.items.length} vět · opakování EN: ${parsed.repeat}× · pauzy ${parsed.pauseAfterEnglish}s / ${parsed.pauseBeforeCzech}s</p>
+        </div>
+        <textarea class="textarea listen-box" id="customListenText" spellcheck="false" placeholder="${escapeHtml(LISTEN_TEMPLATE)}">${escapeHtml(listen.text)}</textarea>
+      </div>
+      <div class="listen-controls">
+        <button class="btn" type="button" data-action="load-custom-listen">Načíst poslech</button>
+        <button class="btn secondary" type="button" data-action="listen-prompt">Prompt pro GPT</button>
+      </div>
+      <div class="listen-controls">
+        <button class="btn success" type="button" data-action="play-custom-listen" ${parsed.items.length && !listen.playing ? "" : "disabled"}>Přehrát</button>
+        <button class="btn danger" type="button" data-action="stop-custom-listen" ${listen.playing ? "" : "disabled"}>Zastavit</button>
+        <button class="btn secondary" type="button" data-action="restart-custom-listen" ${parsed.items.length ? "" : "disabled"}>Od začátku</button>
+        <button class="btn secondary" type="button" data-action="next-custom-listen" ${parsed.items.length ? "" : "disabled"}>Další věta</button>
+      </div>
+      <article class="listen-status">
+        <div class="row-meta">
+          <span class="pill">${listen.playing ? "Přehrávám" : "Zastaveno"}</span>
+          <span class="pill">${progress}</span>
+        </div>
+        <h2>${escapeHtml(listen.currentStep || "Připraveno")}</h2>
+        ${current ? `
+          ${current.wordEn ? `<p class="muted">${escapeHtml(current.wordEn)} = ${escapeHtml(current.wordCz)}</p>` : ""}
+          <p><strong>EN:</strong> ${escapeHtml(current.en)}</p>
+          <p><strong>CZ:</strong> ${escapeHtml(current.cz)}</p>
+        ` : `<p class="muted">Načti text a spusť poslech.</p>`}
+      </article>
+      ${parsed.errors.length ? `
+        <div class="notice danger">
+          <strong>Našel jsem chyby ve formátu:</strong>
+          <ul class="error-list">
+            ${parsed.errors.map((error) => `<li>Řádek ${escapeHtml(error.line)}: ${escapeHtml(error.message)} <span class="muted">${escapeHtml(error.text)}</span></li>`).join("")}
+          </ul>
+        </div>
+      ` : ""}
     </section>
   `;
 }
@@ -854,6 +1075,42 @@ function speak(text) {
   speechSynthesis.speak(utterance);
 }
 
+function speakText(text, lang, runId) {
+  return new Promise((resolve) => {
+    if (!("speechSynthesis" in window) || !text || runId !== listenRunId) {
+      resolve();
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = lang;
+    utterance.rate = 0.92;
+    utterance.onend = resolve;
+    utterance.onerror = resolve;
+    speechSynthesis.speak(utterance);
+  });
+}
+
+function waitForListen(seconds, runId) {
+  return new Promise((resolve) => {
+    if (!seconds || runId !== listenRunId) {
+      resolve();
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      listenTimers.delete(timer);
+      resolve();
+    }, seconds * 1000);
+    listenTimers.add(timer);
+  });
+}
+
+function clearListenTimers() {
+  listenTimers.forEach((timer) => window.clearTimeout(timer));
+  listenTimers.clear();
+}
+
 function importWords() {
   const textarea = document.querySelector("#importText");
   state.importText = textarea ? textarea.value : state.importText;
@@ -863,6 +1120,107 @@ function importWords() {
   saveWords();
   state.importResult = { added: merged.added, merged: merged.merged, errors: parsed.errors };
   if (merged.added || merged.merged) state.importText = "";
+  render();
+}
+
+function loadCustomListen() {
+  stopCustomListen(false);
+  const textarea = document.querySelector("#customListenText");
+  state.customListen.text = textarea ? textarea.value : state.customListen.text;
+  state.customListen.parsed = parseListenText(state.customListen.text);
+  state.customListen.index = 0;
+  state.customListen.currentStep = state.customListen.parsed.items.length ? "Připraveno" : "V textu nejsou žádné věty.";
+  state.customListen.playing = false;
+  saveListenText(state.customListen.text);
+  render();
+}
+
+async function playCustomListen() {
+  if (!("speechSynthesis" in window)) {
+    alert("Tento prohlížeč neumí hlasové čtení.");
+    return;
+  }
+
+  const textarea = document.querySelector("#customListenText");
+  if (textarea) {
+    state.customListen.text = textarea.value;
+    saveListenText(state.customListen.text);
+  }
+
+  const parsed = parseListenText(state.customListen.text);
+  state.customListen.parsed = parsed;
+  if (!parsed.items.length) {
+    state.customListen.currentStep = "V textu nejsou žádné věty.";
+    render();
+    return;
+  }
+
+  if (state.customListen.index >= parsed.items.length) state.customListen.index = 0;
+  clearListenTimers();
+  speechSynthesis.cancel();
+  const runId = listenRunId + 1;
+  listenRunId = runId;
+  state.customListen.playing = true;
+  render();
+
+  while (state.customListen.playing && runId === listenRunId && state.customListen.index < parsed.items.length) {
+    const item = parsed.items[state.customListen.index];
+    state.customListen.currentStep = item.wordEn ? `${item.wordEn} = ${item.wordCz}` : `Věta ${state.customListen.index + 1}`;
+    render();
+
+    if (item.wordEn) await speakText(item.wordEn, "en-US", runId);
+    if (!state.customListen.playing || runId !== listenRunId) break;
+    if (item.wordCz) await speakText(item.wordCz, "cs-CZ", runId);
+    if (!state.customListen.playing || runId !== listenRunId) break;
+
+    for (let repeat = 1; repeat <= parsed.repeat; repeat += 1) {
+      state.customListen.currentStep = `EN ${repeat}/${parsed.repeat}: ${item.en}`;
+      render();
+      await speakText(item.en, "en-US", runId);
+      if (!state.customListen.playing || runId !== listenRunId) break;
+      await waitForListen(repeat < parsed.repeat ? parsed.pauseAfterEnglish : parsed.pauseBeforeCzech, runId);
+    }
+
+    if (!state.customListen.playing || runId !== listenRunId) break;
+    state.customListen.currentStep = `CZ: ${item.cz}`;
+    render();
+    await speakText(item.cz, "cs-CZ", runId);
+    if (!state.customListen.playing || runId !== listenRunId) break;
+    await waitForListen(1, runId);
+    state.customListen.index += 1;
+  }
+
+  if (runId === listenRunId) {
+    state.customListen.playing = false;
+    state.customListen.currentStep = state.customListen.index >= parsed.items.length ? "Hotovo" : "Zastaveno";
+    render();
+  }
+}
+
+function stopCustomListen(shouldRender = true) {
+  listenRunId += 1;
+  clearListenTimers();
+  state.customListen.playing = false;
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  if (state.customListen.currentStep !== "Hotovo") state.customListen.currentStep = "Zastaveno";
+  if (shouldRender) render();
+}
+
+function restartCustomListen() {
+  stopCustomListen(false);
+  state.customListen.index = 0;
+  state.customListen.currentStep = "Připraveno";
+  render();
+}
+
+function nextCustomListen() {
+  stopCustomListen(false);
+  const parsed = state.customListen.parsed || parseListenText(state.customListen.text);
+  state.customListen.parsed = parsed;
+  if (parsed.items.length) {
+    state.customListen.index = Math.min(state.customListen.index + 1, parsed.items.length - 1);
+    state.customListen.currentStep = "Připraveno";
+  }
   render();
 }
 
@@ -981,6 +1339,20 @@ async function copyGptPrompt() {
   }
 }
 
+async function copyListenPrompt() {
+  try {
+    await navigator.clipboard.writeText(GPT_LISTEN_PROMPT);
+    alert("Prompt pro poslech je zkopírovaný.");
+  } catch (error) {
+    const box = document.querySelector("#listenPromptText");
+    if (box) {
+      box.focus();
+      box.select();
+    }
+    alert("Kopírování se nepovedlo. Text je označený, můžete ho zkopírovat ručně.");
+  }
+}
+
 function downloadExport() {
   const blob = new Blob([toCsv(state.words)], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -1007,11 +1379,18 @@ app.addEventListener("click", (event) => {
   if (action === "import") navigate("import");
   if (action === "gpt-prompt") navigate("gptPrompt");
   if (action === "audio") navigate("audio");
+  if (action === "custom-listen") navigate("customListen");
+  if (action === "listen-prompt") navigate("listenPrompt");
   if (action === "smart-practice") startSmartPractice();
   if (action === "problems") navigate("problems");
   if (action === "export") navigate("export");
   if (action === "delete-all") deleteAll();
   if (action === "do-import") importWords();
+  if (action === "load-custom-listen") loadCustomListen();
+  if (action === "play-custom-listen") playCustomListen();
+  if (action === "stop-custom-listen") stopCustomListen();
+  if (action === "restart-custom-listen") restartCustomListen();
+  if (action === "next-custom-listen") nextCustomListen();
   if (action === "word-list") navigate("wordList", { type: target.dataset.type || "deck", name });
   if (action === "delete-word") deleteWord(id);
   if (action === "practice-deck") startDeckPractice(name);
@@ -1035,6 +1414,7 @@ app.addEventListener("click", (event) => {
   if (action === "mark-right") markCurrent(true);
   if (action === "copy-export") copyExport();
   if (action === "copy-gpt-prompt") copyGptPrompt();
+  if (action === "copy-listen-prompt") copyListenPrompt();
   if (action === "download-export") downloadExport();
 });
 
