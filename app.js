@@ -66,11 +66,16 @@ anglické slovo nebo fráze = český překlad
 EN: krátká anglická věta
 CZ: český překlad věty
 
+Když je v české větě anglické slovo nebo fráze, označ ho takto:
+CZ: Sloveso [EN:bought] znamená koupil.
+
 Pravidla:
 - EN věta má být přirozená, krátká a vhodná pro poslech.
 - CZ věta musí přesně odpovídat anglické větě.
 - Každý blok musí mít řádek EN a hned pod ním řádek CZ.
 - Pokud procvičujeme slovesa v minulém čase, dej na řádek nad větou tvar v past simple, například bought = koupil.
+- Pokud se v českém textu objeví anglické slovo nebo fráze, vždy ho označ značkou [EN:...].
+- Značku [EN:...] používej jen v českých řádcích CZ, ne v anglických řádcích EN.
 - Připrav zhruba 10 minut poslechu.
 - Raději používej kratší věty než dlouhé souvětí.
 - Nepiš odrážky, číslování ani vysvětlení.
@@ -1031,7 +1036,7 @@ function renderCustomListen() {
         ${current ? `
           ${current.wordEn ? `<p class="muted">${escapeHtml(current.wordEn)} = ${escapeHtml(current.wordCz)}</p>` : ""}
           <p><strong>EN:</strong> ${escapeHtml(current.en)}</p>
-          <p><strong>CZ:</strong> ${escapeHtml(current.cz)}</p>
+          <p><strong>CZ:</strong> ${escapeHtml(displayListenText(current.cz))}</p>
         ` : `<p class="muted">Načti text a spusť poslech.</p>`}
       </article>
       ${parsed.errors.length ? `
@@ -1089,6 +1094,38 @@ function speakText(text, lang, runId) {
     utterance.onerror = resolve;
     speechSynthesis.speak(utterance);
   });
+}
+
+async function speakMixedText(text, defaultLang, runId) {
+  const parts = splitMixedLanguageText(text, defaultLang);
+  for (const part of parts) {
+    if (runId !== listenRunId || !state.customListen.playing) break;
+    await speakText(part.text, part.lang, runId);
+  }
+}
+
+function splitMixedLanguageText(text, defaultLang) {
+  const parts = [];
+  const pattern = /\[EN:([^\]]+)\]/gi;
+  let lastIndex = 0;
+  let match;
+
+  while ((match = pattern.exec(text)) !== null) {
+    const before = text.slice(lastIndex, match.index).trim();
+    if (before) parts.push({ text: before, lang: defaultLang });
+
+    const english = normalize(match[1]);
+    if (english) parts.push({ text: english, lang: "en-US" });
+    lastIndex = pattern.lastIndex;
+  }
+
+  const after = text.slice(lastIndex).trim();
+  if (after) parts.push({ text: after, lang: defaultLang });
+  return parts.length ? parts : [{ text, lang: defaultLang }];
+}
+
+function displayListenText(text) {
+  return String(text || "").replace(/\[EN:([^\]]+)\]/gi, "$1");
 }
 
 function waitForListen(seconds, runId) {
@@ -1184,7 +1221,7 @@ async function playCustomListen() {
     if (!state.customListen.playing || runId !== listenRunId) break;
     state.customListen.currentStep = `CZ: ${item.cz}`;
     render();
-    await speakText(item.cz, "cs-CZ", runId);
+    await speakMixedText(item.cz, "cs-CZ", runId);
     if (!state.customListen.playing || runId !== listenRunId) break;
     await waitForListen(1, runId);
     state.customListen.index += 1;
