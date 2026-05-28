@@ -5,8 +5,9 @@ const LISTEN_STORAGE_KEY = "vocabTrainerListenText";
 const READER_STORAGE_KEY = "vocabTrainerReaderText";
 const READER_HISTORY_KEY = "vocabTrainerReaderHistory";
 const VOICE_SETTINGS_KEY = "vocabTrainerVoiceSettings";
-const PRESET_VERSION = 12;
+const PRESET_VERSION = 13;
 const SMART_LIMIT = 20;
+const SERVER_VOCAB_URL = "data/default-vocab.csv";
 const DEFAULT_WORDS = Array.isArray(window.DEFAULT_VOCABULARY) ? window.DEFAULT_VOCABULARY : [];
 const TODAY_LABEL = new Date().toLocaleDateString("cs-CZ", {
   day: "numeric",
@@ -198,6 +199,7 @@ const state = {
     label: "",
     currentStep: "",
   },
+  serverVocabStatus: "",
   voiceSettings: loadVoiceSettings(),
 };
 
@@ -226,10 +228,7 @@ function loadWords() {
 
   words = normalizeWords(words);
   if (presetVersion < PRESET_VERSION) {
-    const previousBuiltins = words.filter((word) => word.source === "builtin");
-    words = words.filter((word) => word.source !== "builtin");
-    words = mergeWords(words, [...buildDefaultVocabularyWords(), ...buildIrregularVerbs()]).words;
-    preservePracticeProgress(words, previousBuiltins);
+    words = replaceBuiltInWords(words, buildDefaultVocabularyWords());
   }
 
   saveWords(words);
@@ -258,6 +257,15 @@ function preservePracticeProgress(words, previousWords) {
     word.lastPracticedAt = previous.lastPracticedAt;
     word.lastWrongAt = previous.lastWrongAt;
   });
+}
+
+function replaceBuiltInWords(existingWords, builtInWords) {
+  const normalized = normalizeWords(existingWords);
+  const previousBuiltins = normalized.filter((word) => word.source === "builtin");
+  const userWords = normalized.filter((word) => word.source !== "builtin");
+  const words = mergeWords(userWords, [...builtInWords, ...buildIrregularVerbs()]).words;
+  preservePracticeProgress(words, previousBuiltins);
+  return words;
 }
 
 function loadListenText() {
@@ -436,8 +444,8 @@ function buildIrregularVerbs() {
   return words;
 }
 
-function buildDefaultVocabularyWords() {
-  return DEFAULT_WORDS.map((item) => ({
+function buildDefaultVocabularyWords(items = DEFAULT_WORDS) {
+  return items.map((item) => ({
     id: `ef-${readerKey(item.deck)}-${readerKey(item.en)}-${readerKey(item.cz).slice(0, 24)}`,
     deck: item.deck || "Lekce",
     decks: [item.deck || "Lekce"],
@@ -459,6 +467,21 @@ function buildDefaultVocabularyWords() {
     lastPracticedAt: "",
     lastWrongAt: "",
     createdAt: new Date().toISOString(),
+  }));
+}
+
+function parseServerVocabulary(text) {
+  const parsed = parseCsvImport(String(text || "").split(/\r?\n/));
+  return parsed.words.map((word) => ({
+    deck: word.deck,
+    decks: word.decks,
+    tags: word.tags,
+    en: word.en,
+    pronounce: word.pronounce,
+    cz: word.cz,
+    example: word.example,
+    pos: word.note === "English File" ? "" : word.note.replace(/^English File:\s*/i, ""),
+    type: word.type || (word.tags.some((tag) => tag.toLocaleLowerCase("cs-CZ") === "fráze") ? "phrase" : (word.en.includes(" ") ? "phrase" : "word")),
   }));
 }
 
@@ -1126,9 +1149,16 @@ function renderDecks() {
 }
 
 function renderSettings() {
+  const builtInCount = state.words.filter((word) => word.source === "builtin").length;
   return `
     ${header("Nastavení")}
     <section class="stack">
+      <article class="panel stack">
+        <h2>Serverový slovník</h2>
+        <p class="muted">${builtInCount} vestavěných slovíček. Zdroj: ${escapeHtml(SERVER_VOCAB_URL)}</p>
+        ${state.serverVocabStatus ? `<div class="notice ${state.serverVocabStatus.includes("nepodařilo") ? "danger" : "success"}">${escapeHtml(state.serverVocabStatus)}</div>` : ""}
+        <button class="btn" type="button" data-action="update-server-vocab">Aktualizovat slovník ze serveru</button>
+      </article>
       <article class="panel stack">
         <h2>Hlasy pro poslech</h2>
         <label class="field-label">
@@ -1884,6 +1914,26 @@ function stopPassiveListen(shouldRender = true) {
   if (shouldRender) render();
 }
 
+async function updateServerVocabulary(silent = false) {
+  try {
+    const response = await fetch(`${SERVER_VOCAB_URL}?t=${Date.now()}`, { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const text = await response.text();
+    const items = parseServerVocabulary(text);
+    if (!items.length) throw new Error("Soubor neobsahuje žádná slovíčka.");
+    state.words = replaceBuiltInWords(state.words, buildDefaultVocabularyWords(items));
+    saveWords();
+    state.serverVocabStatus = `Slovník aktualizován: ${items.length} položek ze serveru.`;
+    if (!silent || state.view === "settings") render();
+  } catch (error) {
+    console.warn("Serverový slovník se nepodařilo aktualizovat.", error);
+    if (!silent) {
+      state.serverVocabStatus = "Serverový slovník se nepodařilo načíst. Zůstává poslední uložená verze.";
+      render();
+    }
+  }
+}
+
 function importWords() {
   const textarea = document.querySelector("#importText");
   state.importText = textarea ? textarea.value : state.importText;
@@ -2297,6 +2347,7 @@ app.addEventListener("click", (event) => {
   if (action === "smart-practice") startSmartPractice();
   if (action === "problems") navigate("problems");
   if (action === "export") navigate("export");
+  if (action === "update-server-vocab") updateServerVocabulary(false);
   if (action === "delete-all") deleteAll();
   if (action === "do-import") importWords();
   if (action === "load-custom-listen") loadCustomListen();
@@ -2389,3 +2440,4 @@ if ("serviceWorker" in navigator) {
 }
 
 render();
+updateServerVocabulary(true);
