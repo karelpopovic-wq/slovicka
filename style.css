@@ -368,6 +368,8 @@ input[type="range"] {
   position: relative;
   display: inline;
   border-radius: 6px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .reader-sentence.active {
@@ -380,9 +382,8 @@ input[type="range"] {
   padding: 2px 3px;
   border-radius: 5px;
   cursor: pointer;
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-underline-offset: 3px;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .reader-token.active {
@@ -392,12 +393,11 @@ input[type="range"] {
 }
 
 .reader-token.phrase {
-  text-decoration-style: solid;
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
 }
 
 .reader-token.missing {
   opacity: 0.7;
-  text-decoration-color: var(--danger);
 }
 
 .reader-token.missing.active {

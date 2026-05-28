@@ -5,7 +5,7 @@ const LISTEN_STORAGE_KEY = "vocabTrainerListenText";
 const READER_STORAGE_KEY = "vocabTrainerReaderText";
 const READER_HISTORY_KEY = "vocabTrainerReaderHistory";
 const VOICE_SETTINGS_KEY = "vocabTrainerVoiceSettings";
-const PRESET_VERSION = 14;
+const PRESET_VERSION = 15;
 const SMART_LIMIT = 20;
 const SERVER_VOCAB_URL = "data/default-vocab.csv";
 const DEFAULT_WORDS = Array.isArray(window.DEFAULT_VOCABULARY) ? window.DEFAULT_VOCABULARY : [];
@@ -205,6 +205,8 @@ const state = {
 
 let listenRunId = 0;
 const listenTimers = new Set();
+let readerTapTimer = null;
+let readerHoldTimer = null;
 
 function createId() {
   if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
@@ -1916,6 +1918,10 @@ function stopPassiveListen(shouldRender = true) {
 
 async function updateServerVocabulary(silent = false) {
   try {
+    if (!silent) {
+      state.serverVocabStatus = "Aktualizuji slovník ze serveru...";
+      render();
+    }
     const response = await fetch(`${SERVER_VOCAB_URL}?t=${Date.now()}`, { cache: "no-store" });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const text = await response.text();
@@ -1923,7 +1929,7 @@ async function updateServerVocabulary(silent = false) {
     if (!items.length) throw new Error("Soubor neobsahuje žádná slovíčka.");
     state.words = replaceBuiltInWords(state.words, buildDefaultVocabularyWords(items));
     saveWords();
-    state.serverVocabStatus = `Slovník aktualizován: ${items.length} položek ze serveru.`;
+    state.serverVocabStatus = `Hotovo. Slovník aktualizován: ${items.length} položek ze serveru.`;
     if (!silent || state.view === "settings") render();
   } catch (error) {
     console.warn("Serverový slovník se nepodařilo aktualizovat.", error);
@@ -2093,6 +2099,42 @@ function toggleReaderSentence(sentence) {
   state.reader.selectedToken = "";
   state.reader.selectedSentence = state.reader.selectedSentence === sentence ? "" : sentence;
   render();
+}
+
+function handleReaderClick(target, detail) {
+  if (readerTapTimer) {
+    clearTimeout(readerTapTimer);
+    readerTapTimer = null;
+  }
+
+  const sentenceId = target.dataset.sentence;
+  if (detail >= 2) {
+    toggleReaderSentence(sentenceId);
+    return;
+  }
+
+  if (target.dataset.action === "reader-token") {
+    const tokenId = target.dataset.token;
+    readerTapTimer = setTimeout(() => {
+      readerTapTimer = null;
+      toggleReaderToken(tokenId);
+    }, 240);
+  }
+}
+
+function startReaderHold(target) {
+  if (!target || !target.dataset.sentence) return;
+  if (readerHoldTimer) clearTimeout(readerHoldTimer);
+  readerHoldTimer = setTimeout(() => {
+    readerHoldTimer = null;
+    toggleReaderSentence(target.dataset.sentence);
+  }, 650);
+}
+
+function cancelReaderHold() {
+  if (!readerHoldTimer) return;
+  clearTimeout(readerHoldTimer);
+  readerHoldTimer = null;
 }
 
 function loadReaderFile(file) {
@@ -2359,14 +2401,10 @@ app.addEventListener("click", (event) => {
   if (action === "speak-reader-text") speakReaderText();
   if (action === "open-reader-history") openReaderHistory(id);
   if (action === "reader-token") {
-    if (event.detail >= 2) {
-      toggleReaderSentence(target.dataset.sentence);
-    } else {
-      toggleReaderToken(target.dataset.token);
-    }
+    handleReaderClick(target, event.detail);
   }
   if (action === "reader-sentence") {
-    if (event.detail >= 2) toggleReaderSentence(target.dataset.sentence);
+    handleReaderClick(target, event.detail);
   }
   if (action === "word-list") navigate("wordList", { type: target.dataset.type || "deck", name });
   if (action === "delete-word") deleteWord(id);
@@ -2402,6 +2440,21 @@ app.addEventListener("click", (event) => {
   if (action === "download-export") downloadExport();
   if (action === "test-en-voice") speakByLanguage("I bought a ticket yesterday.", "en-US");
   if (action === "test-cs-voice") speakByLanguage("Včera jsem si koupil lístek.", "cs-CZ");
+});
+
+app.addEventListener("pointerdown", (event) => {
+  const target = event.target.closest("[data-action='reader-token'], [data-action='reader-sentence']");
+  if (!target) return;
+  startReaderHold(target);
+});
+
+app.addEventListener("pointerup", cancelReaderHold);
+app.addEventListener("pointercancel", cancelReaderHold);
+app.addEventListener("pointerleave", cancelReaderHold);
+app.addEventListener("contextmenu", (event) => {
+  const target = event.target.closest("[data-action='reader-token'], [data-action='reader-sentence']");
+  if (!target) return;
+  event.preventDefault();
 });
 
 app.addEventListener("change", (event) => {
