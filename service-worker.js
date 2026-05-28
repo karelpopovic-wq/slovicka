@@ -1,6 +1,6 @@
 "use strict";
 
-const CACHE_NAME = "vocab-trainer-v13";
+const CACHE_NAME = "vocab-trainer-v14";
 const APP_SHELL = [
   "./",
   "./index.html",

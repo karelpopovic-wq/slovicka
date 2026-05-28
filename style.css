@@ -108,7 +108,8 @@ button {
 .deck-row,
 .summary-card,
 .audio-card,
-.listen-status {
+.listen-status,
+.reader-card {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
@@ -247,6 +248,62 @@ button {
 
 .listen-status p {
   margin: 0;
+}
+
+.reader-card {
+  padding: 18px;
+  font-size: 1.18rem;
+  line-height: 1.85;
+}
+
+.reader-sentence {
+  position: relative;
+  display: inline;
+  border-radius: 6px;
+}
+
+.reader-sentence.active {
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
+}
+
+.reader-token {
+  position: relative;
+  display: inline;
+  padding: 2px 3px;
+  border-radius: 5px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+}
+
+.reader-token.active {
+  background: #ffe66d;
+  color: #202124;
+  text-decoration: none;
+}
+
+.reader-bubble,
+.reader-sentence-translation {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 6px);
+  z-index: 2;
+  width: max-content;
+  max-width: min(280px, 80vw);
+  padding: 7px 9px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
+
+.reader-sentence-translation {
+  bottom: calc(100% + 10px);
+  background: var(--surface-soft);
 }
 
 .row-meta {
@@ -413,6 +470,21 @@ button {
 
 .listen-box {
   min-height: 360px;
+}
+
+.reader-box {
+  min-height: 300px;
+}
+
+.file-picker {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-weight: 700;
 }
 
 @media (min-width: 520px) {

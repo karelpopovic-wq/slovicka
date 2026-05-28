@@ -2,7 +2,8 @@
 
 const STORAGE_KEY = "vocabTrainerData";
 const LISTEN_STORAGE_KEY = "vocabTrainerListenText";
-const PRESET_VERSION = 8;
+const READER_STORAGE_KEY = "vocabTrainerReaderText";
+const PRESET_VERSION = 9;
 const SMART_LIMIT = 20;
 const TODAY_LABEL = new Date().toLocaleDateString("cs-CZ", {
   day: "numeric",
@@ -84,6 +85,57 @@ Pravidla:
 Téma / moje poznámky:
 [vložím text]`;
 
+const READER_TEMPLATE = `title: Holiday story
+
+TEXT:
+Last summer, we went to Italy. We stayed in a small hotel near the beach. The hotel was basic, but the staff were friendly. One day, we hired a car and went sightseeing.
+
+VOCAB:
+last summer = minulé léto
+went to = jeli do
+stayed in = bydleli v
+basic = jednoduchý
+staff = personál
+friendly = přátelský
+hired a car = půjčili jsme si auto
+went sightseeing = šli jsme poznávat památky
+
+SENTENCES:
+Last summer, we went to Italy. = Minulé léto jsme jeli do Itálie.
+We stayed in a small hotel near the beach. = Bydleli jsme v malém hotelu blízko pláže.
+The hotel was basic, but the staff were friendly. = Hotel byl jednoduchý, ale personál byl přátelský.
+One day, we hired a car and went sightseeing. = Jeden den jsme si půjčili auto a šli poznávat památky.`;
+
+const GPT_READER_PROMPT = `Připrav mi podklad pro čtení anglického textu do mé aplikace.
+
+Výstup musí být pouze čistý text v tomto formátu, bez komentářů okolo:
+
+title: Krátký název textu
+
+TEXT:
+Anglický text rozdělený do krátkých vět. Text má být přirozený a vhodný pro čtení.
+
+VOCAB:
+anglické slovo nebo fráze = český překlad
+další fráze = český překlad
+
+SENTENCES:
+Celá anglická věta. = Český překlad celé věty.
+Další anglická věta. = Český překlad celé věty.
+
+Pravidla:
+- Připrav anglický text podle tématu, které zadám.
+- Věty udržuj krátké a čitelné.
+- Do VOCAB vlož hlavně slova a fráze, které by mohly být těžké.
+- Pokud je důležitá fráze, dej ji do VOCAB jako celou frázi, například hired a car = půjčil si auto.
+- Fráze mají přednost před jednotlivými slovy.
+- Každá věta z TEXT musí být také v SENTENCES se svým českým překladem.
+- Nepiš vysvětlení, odrážky ani markdown.
+- Nepoužívej středník jako oddělovač.
+
+Téma / moje poznámky:
+[vložím text]`;
+
 const IRREGULAR_VERBS = [
   ["be", "bí", "was / were", "woz / wér", "být", "I am at home.", "I was at home yesterday.", "been"],
   ["become", "bikam", "became", "bikejm", "stát se", "She wants to become a doctor.", "She became a doctor.", "become"],
@@ -126,6 +178,12 @@ const state = {
     index: 0,
     playing: false,
     currentStep: "",
+  },
+  reader: {
+    text: loadReaderText(),
+    parsed: null,
+    selectedToken: "",
+    selectedSentence: "",
   },
 };
 
@@ -182,6 +240,23 @@ function saveListenText(text) {
     localStorage.setItem(LISTEN_STORAGE_KEY, text);
   } catch (error) {
     console.warn("Text poslechu se nepodařilo uložit.", error);
+  }
+}
+
+function loadReaderText() {
+  try {
+    return localStorage.getItem(READER_STORAGE_KEY) || READER_TEMPLATE;
+  } catch (error) {
+    console.warn("Text pro čtení se nepodařilo načíst.", error);
+    return READER_TEMPLATE;
+  }
+}
+
+function saveReaderText(text) {
+  try {
+    localStorage.setItem(READER_STORAGE_KEY, text);
+  } catch (error) {
+    console.warn("Text pro čtení se nepodařilo uložit.", error);
   }
 }
 
@@ -567,6 +642,123 @@ function clampNumber(value, min, max, fallback) {
   return Math.min(max, Math.max(min, number));
 }
 
+function parseReaderText(text) {
+  const lines = String(text || "").split(/\r?\n/);
+  const result = {
+    title: "Čtení textu",
+    text: "",
+    vocab: [],
+    sentenceTranslations: new Map(),
+    errors: [],
+  };
+  let section = "";
+  const textLines = [];
+
+  lines.forEach((rawLine, index) => {
+    const original = rawLine;
+    const line = normalize(rawLine);
+    if (!line) {
+      if (section === "text") textLines.push("");
+      return;
+    }
+
+    const titleMatch = line.match(/^title\s*:\s*(.+)$/i);
+    if (titleMatch) {
+      result.title = normalize(titleMatch[1]) || result.title;
+      return;
+    }
+
+    const sectionMatch = line.match(/^(TEXT|VOCAB|SENTENCES)\s*:$/i);
+    if (sectionMatch) {
+      section = sectionMatch[1].toLowerCase();
+      return;
+    }
+
+    if (section === "text") {
+      textLines.push(original);
+      return;
+    }
+
+    if (section === "vocab") {
+      const match = line.match(/^(.+?)\s*=\s*(.+)$/);
+      if (!match) {
+        result.errors.push({ line: index + 1, text: original, message: "Řádek slovníku není ve formátu výraz = překlad." });
+        return;
+      }
+      result.vocab.push({ en: normalize(match[1]), cz: normalize(match[2]) });
+      return;
+    }
+
+    if (section === "sentences") {
+      const match = line.match(/^(.+?)\s*=\s*(.+)$/);
+      if (!match) {
+        result.errors.push({ line: index + 1, text: original, message: "Řádek věty není ve formátu anglická věta = překlad." });
+        return;
+      }
+      result.sentenceTranslations.set(sentenceKey(match[1]), normalize(match[2]));
+      return;
+    }
+
+    result.errors.push({ line: index + 1, text: original, message: "Text musí být v sekci TEXT, VOCAB nebo SENTENCES." });
+  });
+
+  result.text = textLines.join("\n").trim();
+  if (!result.text) result.errors.push({ line: "-", text: "", message: "Chybí sekce TEXT s anglickým textem." });
+  result.vocab = mergeReaderVocab(result.vocab, state.words);
+  return result;
+}
+
+function mergeReaderVocab(vocab, words) {
+  const map = new Map();
+  [...vocab, ...words.map((word) => ({ en: word.en, cz: word.cz }))].forEach((item) => {
+    const en = normalize(item.en);
+    const cz = normalize(item.cz);
+    if (!en || !cz) return;
+    const key = readerKey(en);
+    if (!map.has(key)) map.set(key, { en, cz });
+  });
+  return Array.from(map.values()).sort((a, b) => b.en.length - a.en.length || a.en.localeCompare(b.en, "en"));
+}
+
+function readerKey(value) {
+  return normalize(value).toLocaleLowerCase("en-US");
+}
+
+function sentenceKey(value) {
+  return normalize(value)
+    .replace(/\s+/g, " ")
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'")
+    .toLocaleLowerCase("en-US");
+}
+
+function splitReaderSentences(text) {
+  return String(text || "")
+    .replace(/\n+/g, " ")
+    .match(/[^.!?]+[.!?]+|[^.!?]+$/g)?.map(normalize).filter(Boolean) || [];
+}
+
+function findReaderMatches(sentence, vocab) {
+  const matches = [];
+  const occupied = Array(sentence.length).fill(false);
+
+  vocab.forEach((item) => {
+    const escaped = item.en.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(`(^|[^A-Za-z])(${escaped})(?=$|[^A-Za-z])`, "gi");
+    let match;
+
+    while ((match = pattern.exec(sentence)) !== null) {
+      const start = match.index + match[1].length;
+      const end = start + match[2].length;
+      if (occupied.slice(start, end).some(Boolean)) continue;
+      for (let i = start; i < end; i += 1) occupied[i] = true;
+      matches.push({ start, end, en: sentence.slice(start, end), cz: item.cz });
+    }
+  });
+
+  return matches.sort((a, b) => a.start - b.start);
+}
+
 function getDeckNames(word) {
   return uniqueList(Array.isArray(word.decks) && word.decks.length ? word.decks : [word.deck]);
 }
@@ -660,6 +852,7 @@ function goBack() {
     return navigate("decks");
   }
   if (state.view === "listenPrompt") return navigate("customListen");
+  if (state.view === "readerPrompt") return navigate("reader");
   navigate("home");
 }
 
@@ -686,6 +879,8 @@ function render() {
     gptPrompt: renderGptPrompt,
     customListen: renderCustomListen,
     listenPrompt: renderListenPrompt,
+    reader: renderReader,
+    readerPrompt: renderReaderPrompt,
   };
   app.innerHTML = (views[state.view] || renderHome)();
 }
@@ -716,6 +911,7 @@ function renderHome() {
         <button class="btn secondary" type="button" data-action="gpt-prompt">Prompt pro GPT</button>
         <button class="btn secondary" type="button" data-action="audio">Poslech</button>
         <button class="btn secondary" type="button" data-action="custom-listen">Vlastní poslech</button>
+        <button class="btn secondary" type="button" data-action="reader">Čtení textu</button>
         <button class="btn secondary" type="button" data-action="problems">Problémová slovíčka</button>
         <button class="btn secondary" type="button" data-action="export">Export/Záloha</button>
         <button class="btn danger wide" type="button" data-action="delete-all">Smazat všechna data</button>
@@ -809,6 +1005,20 @@ function renderListenPrompt() {
       <textarea class="textarea prompt-box" id="listenPromptText" readonly>${escapeHtml(GPT_LISTEN_PROMPT)}</textarea>
       <button class="btn" type="button" data-action="copy-listen-prompt">Kopírovat prompt</button>
       <button class="btn secondary" type="button" data-action="custom-listen">Přejít na Vlastní poslech</button>
+    </section>
+  `;
+}
+
+function renderReaderPrompt() {
+  return `
+    ${header("Prompt pro čtení")}
+    <section class="stack">
+      <div class="notice">
+        Tenhle prompt použij v GPT, když chceš připravit anglický text se slovníkem frází a překlady vět.
+      </div>
+      <textarea class="textarea prompt-box" id="readerPromptText" readonly>${escapeHtml(GPT_READER_PROMPT)}</textarea>
+      <button class="btn" type="button" data-action="copy-reader-prompt">Kopírovat prompt</button>
+      <button class="btn secondary" type="button" data-action="reader">Přejít na Čtení textu</button>
     </section>
   `;
 }
@@ -1051,6 +1261,80 @@ function renderCustomListen() {
   `;
 }
 
+function renderReader() {
+  const reader = state.reader;
+  const parsed = reader.parsed || parseReaderText(reader.text);
+  const sentences = splitReaderSentences(parsed.text);
+
+  return `
+    ${header("Čtení textu")}
+    <section class="stack">
+      <div class="notice">
+        Vlož anglický text z GPT. Kliknutí na slovo nebo frázi zobrazí překlad, další kliknutí ho schová. Dvojklik na větu zobrazí překlad celé věty.
+      </div>
+      <div class="panel stack">
+        <div class="import-help">
+          <strong>${escapeHtml(parsed.title)}</strong>
+          <p class="muted">${sentences.length} vět · ${parsed.vocab.length} slov/frází ve slovníku</p>
+        </div>
+        <textarea class="textarea reader-box" id="readerText" spellcheck="false" placeholder="${escapeHtml(READER_TEMPLATE)}">${escapeHtml(reader.text)}</textarea>
+      </div>
+      <div class="listen-controls">
+        <button class="btn" type="button" data-action="load-reader">Načíst text</button>
+        <button class="btn secondary" type="button" data-action="reader-prompt">Prompt pro GPT</button>
+      </div>
+      <label class="file-picker">
+        <span>Nahrát .txt soubor</span>
+        <input type="file" accept=".txt,text/plain" data-action="reader-file">
+      </label>
+      <article class="reader-card">
+        ${sentences.length ? sentences.map((sentence, index) => renderReaderSentence(sentence, index, parsed)).join(" ") : `<p class="muted">Načti text pro čtení.</p>`}
+      </article>
+      ${parsed.errors.length ? `
+        <div class="notice danger">
+          <strong>Našel jsem chyby ve formátu:</strong>
+          <ul class="error-list">
+            ${parsed.errors.map((error) => `<li>Řádek ${escapeHtml(error.line)}: ${escapeHtml(error.message)} <span class="muted">${escapeHtml(error.text)}</span></li>`).join("")}
+          </ul>
+        </div>
+      ` : ""}
+    </section>
+  `;
+}
+
+function renderReaderSentence(sentence, sentenceIndex, parsed) {
+  const sentenceId = String(sentenceIndex);
+  const sentenceTranslation = parsed.sentenceTranslations.get(sentenceKey(sentence)) || "Překlad této věty není v podkladu.";
+  const showSentence = state.reader.selectedSentence === sentenceId;
+  const matches = findReaderMatches(sentence, parsed.vocab);
+  let cursor = 0;
+  let tokenIndex = 0;
+  const parts = [];
+
+  matches.forEach((match) => {
+    if (match.start > cursor) parts.push(escapeHtml(sentence.slice(cursor, match.start)));
+    const tokenId = `${sentenceIndex}-${tokenIndex}`;
+    const selected = state.reader.selectedToken === tokenId;
+    parts.push(`
+      <span class="reader-token ${selected ? "active" : ""}" data-action="reader-token" data-token="${tokenId}" data-sentence="${sentenceId}" data-translation="${escapeHtml(match.cz)}">
+        ${selected ? `<span class="reader-bubble">${escapeHtml(match.cz)}</span>` : ""}
+        ${escapeHtml(match.en)}
+      </span>
+    `);
+    cursor = match.end;
+    tokenIndex += 1;
+  });
+
+  if (cursor < sentence.length) parts.push(escapeHtml(sentence.slice(cursor)));
+
+  return `
+    <span class="reader-sentence ${showSentence ? "active" : ""}" data-action="reader-sentence" data-sentence="${sentenceId}" data-translation="${escapeHtml(sentenceTranslation)}">
+      ${showSentence ? `<span class="reader-sentence-translation">${escapeHtml(sentenceTranslation)}</span>` : ""}
+      ${parts.join("")}
+    </span>
+  `;
+}
+
 function toCsv(words) {
   const rows = ["deck;tags;en;pronounce;cz;example;note"];
   words.forEach((word) => {
@@ -1261,6 +1545,43 @@ function nextCustomListen() {
   render();
 }
 
+function loadReader() {
+  const textarea = document.querySelector("#readerText");
+  state.reader.text = textarea ? textarea.value : state.reader.text;
+  state.reader.parsed = parseReaderText(state.reader.text);
+  state.reader.selectedToken = "";
+  state.reader.selectedSentence = "";
+  saveReaderText(state.reader.text);
+  render();
+}
+
+function toggleReaderToken(token) {
+  state.reader.selectedSentence = "";
+  state.reader.selectedToken = state.reader.selectedToken === token ? "" : token;
+  render();
+}
+
+function toggleReaderSentence(sentence) {
+  state.reader.selectedToken = "";
+  state.reader.selectedSentence = state.reader.selectedSentence === sentence ? "" : sentence;
+  render();
+}
+
+function loadReaderFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    state.reader.text = String(reader.result || "");
+    state.reader.parsed = parseReaderText(state.reader.text);
+    state.reader.selectedToken = "";
+    state.reader.selectedSentence = "";
+    saveReaderText(state.reader.text);
+    navigate("reader");
+  };
+  reader.onerror = () => alert("Soubor se nepodařilo načíst.");
+  reader.readAsText(file);
+}
+
 function deleteAll() {
   if (!confirm("Opravdu smazat všechna uložená slovíčka? Pevná nepravidelná slovesa se znovu připraví při dalším načtení.")) return;
   state.words = mergeWords([], buildIrregularVerbs()).words;
@@ -1390,6 +1711,20 @@ async function copyListenPrompt() {
   }
 }
 
+async function copyReaderPrompt() {
+  try {
+    await navigator.clipboard.writeText(GPT_READER_PROMPT);
+    alert("Prompt pro čtení je zkopírovaný.");
+  } catch (error) {
+    const box = document.querySelector("#readerPromptText");
+    if (box) {
+      box.focus();
+      box.select();
+    }
+    alert("Kopírování se nepovedlo. Text je označený, můžete ho zkopírovat ručně.");
+  }
+}
+
 function downloadExport() {
   const blob = new Blob([toCsv(state.words)], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
@@ -1418,6 +1753,8 @@ app.addEventListener("click", (event) => {
   if (action === "audio") navigate("audio");
   if (action === "custom-listen") navigate("customListen");
   if (action === "listen-prompt") navigate("listenPrompt");
+  if (action === "reader") navigate("reader");
+  if (action === "reader-prompt") navigate("readerPrompt");
   if (action === "smart-practice") startSmartPractice();
   if (action === "problems") navigate("problems");
   if (action === "export") navigate("export");
@@ -1428,6 +1765,17 @@ app.addEventListener("click", (event) => {
   if (action === "stop-custom-listen") stopCustomListen();
   if (action === "restart-custom-listen") restartCustomListen();
   if (action === "next-custom-listen") nextCustomListen();
+  if (action === "load-reader") loadReader();
+  if (action === "reader-token") {
+    if (event.detail >= 2) {
+      toggleReaderSentence(target.dataset.sentence);
+    } else {
+      toggleReaderToken(target.dataset.token);
+    }
+  }
+  if (action === "reader-sentence") {
+    if (event.detail >= 2) toggleReaderSentence(target.dataset.sentence);
+  }
   if (action === "word-list") navigate("wordList", { type: target.dataset.type || "deck", name });
   if (action === "delete-word") deleteWord(id);
   if (action === "practice-deck") startDeckPractice(name);
@@ -1452,7 +1800,14 @@ app.addEventListener("click", (event) => {
   if (action === "copy-export") copyExport();
   if (action === "copy-gpt-prompt") copyGptPrompt();
   if (action === "copy-listen-prompt") copyListenPrompt();
+  if (action === "copy-reader-prompt") copyReaderPrompt();
   if (action === "download-export") downloadExport();
+});
+
+app.addEventListener("change", (event) => {
+  const target = event.target.closest("[data-action]");
+  if (!target) return;
+  if (target.dataset.action === "reader-file") loadReaderFile(target.files?.[0]);
 });
 
 if ("serviceWorker" in navigator) {
