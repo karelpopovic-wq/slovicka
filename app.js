@@ -3,8 +3,11 @@
 const STORAGE_KEY = "vocabTrainerData";
 const LISTEN_STORAGE_KEY = "vocabTrainerListenText";
 const READER_STORAGE_KEY = "vocabTrainerReaderText";
-const PRESET_VERSION = 9;
+const READER_HISTORY_KEY = "vocabTrainerReaderHistory";
+const VOICE_SETTINGS_KEY = "vocabTrainerVoiceSettings";
+const PRESET_VERSION = 11;
 const SMART_LIMIT = 20;
+const DEFAULT_WORDS = Array.isArray(window.DEFAULT_VOCABULARY) ? window.DEFAULT_VOCABULARY : [];
 const TODAY_LABEL = new Date().toLocaleDateString("cs-CZ", {
   day: "numeric",
   month: "numeric",
@@ -187,7 +190,15 @@ const state = {
     parsed: null,
     selectedToken: "",
     selectedSentence: "",
+    history: loadReaderHistory(),
+    speaking: false,
   },
+  passiveListen: {
+    playing: false,
+    label: "",
+    currentStep: "",
+  },
+  voiceSettings: loadVoiceSettings(),
 };
 
 let listenRunId = 0;
@@ -215,7 +226,10 @@ function loadWords() {
 
   words = normalizeWords(words);
   if (presetVersion < PRESET_VERSION) {
-    words = mergeWords(words, buildIrregularVerbs()).words;
+    const previousBuiltins = words.filter((word) => word.source === "builtin");
+    words = words.filter((word) => word.source !== "builtin");
+    words = mergeWords(words, [...buildDefaultVocabularyWords(), ...buildIrregularVerbs()]).words;
+    preservePracticeProgress(words, previousBuiltins);
   }
 
   saveWords(words);
@@ -227,6 +241,23 @@ function saveWords(words = state.words) {
     presetVersion: PRESET_VERSION,
     words: normalizeWords(words),
   }));
+}
+
+function preservePracticeProgress(words, previousWords) {
+  const previousIndex = new Map(previousWords.map((word) => [identityKey(word), word]));
+  words.filter((word) => word.source === "builtin").forEach((word) => {
+    const previous = previousIndex.get(identityKey(word));
+    if (!previous) return;
+    word.mistakes = previous.mistakes;
+    word.correct = previous.correct;
+    word.isProblem = previous.isProblem;
+    word.problemHits = previous.problemHits;
+    word.knownStreak = previous.knownStreak;
+    word.seenCount = previous.seenCount;
+    word.streak = previous.streak;
+    word.lastPracticedAt = previous.lastPracticedAt;
+    word.lastWrongAt = previous.lastWrongAt;
+  });
 }
 
 function loadListenText() {
@@ -263,6 +294,50 @@ function saveReaderText(text) {
   }
 }
 
+function loadReaderHistory() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(READER_HISTORY_KEY) || "[]");
+    return Array.isArray(saved) ? saved : [];
+  } catch (error) {
+    console.warn("Historie čtení se nepodařila načíst.", error);
+    return [];
+  }
+}
+
+function saveReaderHistory(history = state.reader.history) {
+  try {
+    localStorage.setItem(READER_HISTORY_KEY, JSON.stringify(history.slice(0, 20)));
+  } catch (error) {
+    console.warn("Historie čtení se nepodařila uložit.", error);
+  }
+}
+
+function loadVoiceSettings() {
+  try {
+    return {
+      enVoice: "",
+      csVoice: "",
+      rate: 0.86,
+      ...JSON.parse(localStorage.getItem(VOICE_SETTINGS_KEY) || "{}"),
+    };
+  } catch (error) {
+    console.warn("Nastavení hlasu se nepodařilo načíst.", error);
+    return { enVoice: "", csVoice: "", rate: 0.86 };
+  }
+}
+
+function saveVoiceSettings() {
+  try {
+    localStorage.setItem(VOICE_SETTINGS_KEY, JSON.stringify(state.voiceSettings));
+  } catch (error) {
+    console.warn("Nastavení hlasu se nepodařilo uložit.", error);
+  }
+}
+
+function getSpeechRate() {
+  return clampNumber(state.voiceSettings.rate, 0.65, 1.05, 0.86);
+}
+
 function normalizeWords(words) {
   return words.map((word) => {
     const deck = normalize(word.deck || word.decks?.[0] || "Bez lekce");
@@ -282,8 +357,13 @@ function normalizeWords(words) {
       cz: normalize(word.cz),
       example: normalize(word.example),
       note: normalize(word.note),
+      type: normalize(word.type || (String(word.en || "").includes(" ") ? "phrase" : "word")),
+      source: normalize(word.source || ""),
       mistakes: Number(word.mistakes || 0),
       correct: Number(word.correct || 0),
+      isProblem: Boolean(word.isProblem || false),
+      problemHits: Number(word.problemHits || 0),
+      knownStreak: Number(word.knownStreak || 0),
       seenCount: Number(word.seenCount || 0),
       streak: Number(word.streak || 0),
       lastPracticedAt: word.lastPracticedAt || "",
@@ -303,10 +383,15 @@ function makeIrregularWord(en, pronounce, cz, example, note, tags) {
     pronounce,
     cz,
     example,
-    note,
-    mistakes: 0,
-    correct: 0,
-    seenCount: 0,
+      note,
+      type: "irregular",
+      source: "builtin",
+      mistakes: 0,
+      correct: 0,
+      isProblem: false,
+      problemHits: 0,
+      knownStreak: 0,
+      seenCount: 0,
     streak: 0,
     lastPracticedAt: "",
     lastWrongAt: "",
@@ -335,9 +420,46 @@ function buildIrregularVerbs() {
       `past simple od slovesa ${base}; past participle: ${participle}`,
       ["slovesa", "past simple"]
     ));
+
+    if (participle && participle !== past && participle !== base && !participle.includes("/")) {
+      words.push(makeIrregularWord(
+        participle,
+        "",
+        `${cz} - příčestí minulé`,
+        `I have ${participle}.`,
+        `past participle od slovesa ${base}; past simple: ${past}`,
+        ["slovesa", "past participle"]
+      ));
+    }
   });
 
   return words;
+}
+
+function buildDefaultVocabularyWords() {
+  return DEFAULT_WORDS.map((item) => ({
+    id: `ef-${readerKey(item.deck)}-${readerKey(item.en)}-${readerKey(item.cz).slice(0, 24)}`,
+    deck: item.deck || "Lekce",
+    decks: [item.deck || "Lekce"],
+    tags: uniqueList([...(Array.isArray(item.tags) ? item.tags : []), item.type === "phrase" ? "fráze" : "slovíčka"]),
+    en: item.en,
+    pronounce: item.pronounce || "",
+    cz: item.cz,
+    example: item.example || "",
+    note: item.pos ? `English File: ${item.pos}` : "English File",
+    type: item.type || "word",
+    source: "builtin",
+    mistakes: 0,
+    correct: 0,
+    isProblem: false,
+    problemHits: 0,
+    knownStreak: 0,
+    seenCount: 0,
+    streak: 0,
+    lastPracticedAt: "",
+    lastWrongAt: "",
+    createdAt: new Date().toISOString(),
+  }));
 }
 
 function escapeHtml(value) {
@@ -824,10 +946,24 @@ function getDecks(words = state.words) {
       if (!decks.has(name)) decks.set(name, { name, count: 0, problemCount: 0 });
       const deck = decks.get(name);
       deck.count += 1;
-      if (word.mistakes > 0) deck.problemCount += 1;
+      if (word.isProblem) deck.problemCount += 1;
     });
   });
-  return Array.from(decks.values()).sort((a, b) => a.name.localeCompare(b.name, "cs"));
+  return Array.from(decks.values()).sort((a, b) => compareDeckNames(a.name, b.name));
+}
+
+function compareDeckNames(a, b) {
+  const lessonA = lessonNumber(a);
+  const lessonB = lessonNumber(b);
+  if (lessonA !== null && lessonB !== null) return lessonA - lessonB;
+  if (lessonA !== null) return -1;
+  if (lessonB !== null) return 1;
+  return a.localeCompare(b, "cs", { numeric: true, sensitivity: "base" });
+}
+
+function lessonNumber(name) {
+  const match = String(name || "").match(/^Lekce\s+(\d+)$/i);
+  return match ? Number(match[1]) : null;
 }
 
 function getTags(words = state.words) {
@@ -837,7 +973,7 @@ function getTags(words = state.words) {
       if (!tags.has(name)) tags.set(name, { name, count: 0, problemCount: 0 });
       const tag = tags.get(name);
       tag.count += 1;
-      if (word.mistakes > 0) tag.problemCount += 1;
+      if (word.isProblem) tag.problemCount += 1;
     });
   });
   return Array.from(tags.values()).sort((a, b) => a.name.localeCompare(b.name, "cs"));
@@ -853,8 +989,8 @@ function getWordsForTag(tag) {
 
 function getProblemWords() {
   return state.words
-    .filter((word) => Number(word.mistakes) > 0)
-    .sort((a, b) => b.mistakes - a.mistakes || a.en.localeCompare(b.en));
+    .filter((word) => word.isProblem)
+    .sort((a, b) => b.problemHits - a.problemHits || b.mistakes - a.mistakes || a.en.localeCompare(b.en));
 }
 
 function daysSince(isoDate) {
@@ -889,6 +1025,7 @@ function selectSmartWords(words, limit = SMART_LIMIT) {
 }
 
 function navigate(view, params = {}) {
+  if (state.view === "reader" && view !== "reader") stopReaderSpeech(false);
   state.view = view;
   state.params = params;
   state.importResult = view === "import" ? state.importResult : null;
@@ -910,11 +1047,12 @@ function goBack() {
   navigate("home");
 }
 
-function header(title, back = true) {
+function header(title, back = true, extra = "") {
   return `
     <div class="topbar">
       ${back ? `<button class="back-button" type="button" data-action="back" aria-label="Zpět">‹</button>` : ""}
       <h1>${escapeHtml(title)}</h1>
+      ${extra}
     </div>
   `;
 }
@@ -922,6 +1060,11 @@ function header(title, back = true) {
 function render() {
   const views = {
     home: renderHome,
+    settings: renderSettings,
+    phrases: renderPhrases,
+    listeningHub: renderListeningHub,
+    irregulars: renderIrregulars,
+    grammar: renderGrammar,
     decks: renderDecks,
     tags: renderTags,
     import: renderImport,
@@ -955,32 +1098,172 @@ function renderHome() {
         <div class="stat"><strong>${problemCount}</strong><span>problémových</span></div>
       </div>
       <div class="notice">
-        Výchozí aplikace obsahuje jen nepravidelná slovesa. Ostatní lekce si přidávej importem z GPT přímo v telefonu.
+        English File slovíčka jsou připravená po lekcích. Vlastní slovíčka i texty se ukládají jen v tomto zařízení.
       </div>
       <div class="button-grid">
-        <button class="btn wide" type="button" data-action="smart-practice">Chytrý trénink</button>
-        <button class="btn" type="button" data-action="decks">Lekce</button>
-        <button class="btn secondary" type="button" data-action="tags">Štítky</button>
-        <button class="btn secondary" type="button" data-action="import">Import</button>
-        <button class="btn secondary" type="button" data-action="gpt-prompt">Prompt pro GPT</button>
-        <button class="btn secondary" type="button" data-action="audio">Poslech</button>
-        <button class="btn secondary" type="button" data-action="custom-listen">Vlastní poslech</button>
+        <button class="btn wide" type="button" data-action="decks">Lekce</button>
+        <button class="btn secondary" type="button" data-action="irregulars">Nepravidelná slovesa</button>
+        <button class="btn secondary" type="button" data-action="phrases">Fráze</button>
+        <button class="btn secondary" type="button" data-action="listening-hub">Poslech</button>
         <button class="btn secondary" type="button" data-action="reader">Čtení textu</button>
+        <button class="btn secondary" type="button" data-action="grammar">Časy</button>
+        <button class="btn secondary" type="button" data-action="settings">Nastavení</button>
+        <button class="btn secondary" type="button" data-action="smart-practice">Chytrý trénink</button>
         <button class="btn secondary" type="button" data-action="problems">Problémová slovíčka</button>
-        <button class="btn secondary" type="button" data-action="export">Export/Záloha</button>
-        <button class="btn danger wide" type="button" data-action="delete-all">Smazat všechna data</button>
       </div>
     </section>
   `;
 }
 
 function renderDecks() {
-  const decks = getDecks();
+  const decks = getDecks().filter((deck) => deck.name !== "Nepravidelná slovesa");
   return `
     ${header("Lekce")}
     <section class="stack">
       ${decks.length ? decks.map((deck) => renderCollectionRow(deck, "deck")).join("") : `<div class="empty-state">Zatím tu nejsou žádné lekce.</div>`}
     </section>
+  `;
+}
+
+function renderSettings() {
+  return `
+    ${header("Nastavení")}
+    <section class="stack">
+      <article class="panel stack">
+        <h2>Hlasy pro poslech</h2>
+        <label class="field-label">
+          Angličtina
+          ${renderVoiceSelect("enVoice", "en")}
+        </label>
+        <label class="field-label">
+          Čeština
+          ${renderVoiceSelect("csVoice", "cs")}
+        </label>
+        <label class="field-label">
+          Rychlost: <span class="voice-rate-value">${getSpeechRate().toFixed(2)}</span>
+          <input type="range" min="0.65" max="1.05" step="0.01" value="${escapeHtml(state.voiceSettings.rate || 0.86)}" data-action="voice-rate">
+        </label>
+        <div class="listen-controls">
+          <button class="btn secondary" type="button" data-action="test-en-voice">Test EN</button>
+          <button class="btn secondary" type="button" data-action="test-cs-voice">Test CZ</button>
+        </div>
+      </article>
+      <button class="btn" type="button" data-action="import">Import vlastních slovíček</button>
+      <button class="btn secondary" type="button" data-action="export">Export/Záloha</button>
+      <button class="btn secondary" type="button" data-action="gpt-prompt">Prompt pro slovíčka</button>
+      <button class="btn secondary" type="button" data-action="listen-prompt">Prompt pro poslech</button>
+      <button class="btn secondary" type="button" data-action="reader-prompt">Prompt pro čtení</button>
+      <button class="btn danger" type="button" data-action="delete-all">Smazat všechna data</button>
+    </section>
+  `;
+}
+
+function renderVoiceSelect(settingKey, languagePrefix) {
+  const voices = getAvailableVoices();
+  const selected = state.voiceSettings[settingKey] || "";
+  const preferred = voices.filter((voice) => voice.lang.toLowerCase().startsWith(languagePrefix));
+  const other = voices.filter((voice) => !voice.lang.toLowerCase().startsWith(languagePrefix));
+  const options = [...preferred, ...other];
+
+  return `
+    <select class="select" data-action="voice-select" data-setting="${settingKey}">
+      <option value="">Automaticky podle jazyka</option>
+      ${options.map((voice) => `<option value="${escapeHtml(voice.name)}" ${voice.name === selected ? "selected" : ""}>${escapeHtml(voice.name)} (${escapeHtml(voice.lang)})</option>`).join("")}
+    </select>
+  `;
+}
+
+function renderPhrases() {
+  const decks = getDecks(state.words.filter((word) => word.type === "phrase" && !getDeckNames(word).includes("Nepravidelná slovesa")));
+  return `
+    ${header("Fráze")}
+    <section class="stack">
+      ${decks.length ? decks.map((deck) => renderCollectionRow(deck, "phraseDeck")).join("") : `<div class="empty-state">Zatím tu nejsou žádné fráze.</div>`}
+    </section>
+  `;
+}
+
+function renderIrregulars() {
+  const words = getWordsForDeck("Nepravidelná slovesa");
+  return `
+    ${header("Nepravidelná slovesa")}
+    <section class="stack">
+      <div class="notice">Infinitiv, past simple i past participle držíme pohromadě. V kartičkách i poslechu se procvičují i minulé tvary.</div>
+      <button class="btn" type="button" data-action="practice-deck" data-name="Nepravidelná slovesa">Kartičky</button>
+      <button class="btn secondary" type="button" data-action="listen-deck" data-name="Nepravidelná slovesa">Poslech</button>
+      <button class="btn secondary" type="button" data-action="word-list" data-type="deck" data-name="Nepravidelná slovesa">Seznam (${words.length})</button>
+    </section>
+  `;
+}
+
+function renderListeningHub() {
+  const lessonDecks = getDecks().filter((deck) => deck.name !== "Nepravidelná slovesa");
+  const phraseDecks = getDecks(state.words.filter((word) => word.type === "phrase"));
+  return `
+    ${header("Poslech")}
+    <section class="stack">
+      <div class="notice">Pasivní poslech čte 2× anglicky a 1× česky. Angličtina i čeština se posílají do správného hlasu.</div>
+      ${state.passiveListen.playing ? `
+        <div class="listen-status">
+          <div class="row-meta">
+            <span class="pill">Přehrávám</span>
+            <span class="pill">${escapeHtml(state.passiveListen.label)}</span>
+          </div>
+          <h2>${escapeHtml(state.passiveListen.currentStep || "Připraveno")}</h2>
+          <button class="btn danger" type="button" data-action="stop-passive-listen">Zastavit</button>
+        </div>
+      ` : ""}
+      <article class="panel stack">
+        <h2>Slovíčka z lekce</h2>
+        ${lessonDecks.map((deck) => `<button class="btn secondary" type="button" data-action="listen-deck-words" data-name="${escapeHtml(deck.name)}">${escapeHtml(deck.name)} · slovíčka</button>`).join("")}
+      </article>
+      <article class="panel stack">
+        <h2>Fráze</h2>
+        ${phraseDecks.map((deck) => `<button class="btn secondary" type="button" data-action="listen-deck-phrases" data-name="${escapeHtml(deck.name)}">${escapeHtml(deck.name)} · fráze</button>`).join("")}
+      </article>
+      <button class="btn secondary" type="button" data-action="audio">Pevné audio stopy</button>
+      <button class="btn secondary" type="button" data-action="custom-listen">Vlastní poslech z GPT</button>
+    </section>
+  `;
+}
+
+function renderGrammar() {
+  return `
+    ${header("Časy")}
+    <section class="stack">
+      <article class="panel stack">
+        <h2>Rychlá časová osa</h2>
+        <div class="timeline" aria-label="Časová osa anglických časů">
+          <div><strong>Minulost</strong><span>Past simple</span></div>
+          <div><strong>Teď</strong><span>Present continuous</span></div>
+          <div><strong>Běžně</strong><span>Present simple</span></div>
+          <div><strong>Výsledek</strong><span>Present perfect</span></div>
+        </div>
+      </article>
+      ${renderTenseCard("Present simple", "Zvyky, fakta, opakované věci.", "I work every day.", "do / does", "every day, usually, often, sometimes")}
+      ${renderTenseCard("Present continuous", "Děje právě teď nebo dočasně kolem současnosti.", "I am working now.", "am / is / are + -ing", "now, at the moment, today")}
+      ${renderTenseCard("Past simple", "Ukončený děj v minulosti. Víme kdy nebo je to jasné z kontextu.", "I bought a ticket yesterday.", "sloveso + -ed / 2. tvar", "yesterday, last week, in 2020, ago")}
+      ${renderTenseCard("Present perfect", "Minulost má dopad na současnost. Důležitý je výsledek, ne přesný čas.", "I have finished my homework.", "have / has + 3. tvar", "already, yet, just, ever, never")}
+      <article class="panel stack">
+        <h2>Jak se rychle rozhodnout</h2>
+        <p><strong>Je tam přesný minulý čas?</strong> Použij Past simple.</p>
+        <p><strong>Děje se to právě teď?</strong> Použij Present continuous.</p>
+        <p><strong>Je to zvyk nebo fakt?</strong> Použij Present simple.</p>
+        <p><strong>Jde o výsledek do teď?</strong> Použij Present perfect.</p>
+      </article>
+    </section>
+  `;
+}
+
+function renderTenseCard(title, usage, example, formula, signals) {
+  return `
+    <article class="panel tense-card">
+      <h2>${escapeHtml(title)}</h2>
+      <p>${escapeHtml(usage)}</p>
+      <div class="formula">${escapeHtml(formula)}</div>
+      <p><strong>${escapeHtml(example)}</strong></p>
+      <p class="muted">Signály: ${escapeHtml(signals)}</p>
+    </article>
   `;
 }
 
@@ -995,7 +1278,7 @@ function renderTags() {
 }
 
 function renderCollectionRow(item, type) {
-  const actionPrefix = type === "tag" ? "tag" : "deck";
+  const actionPrefix = type === "tag" ? "tag" : type === "phraseDeck" ? "phrase-deck" : "deck";
   const label = type === "tag" ? "štítek" : "lekce";
   return `
     <article class="deck-row">
@@ -1095,7 +1378,11 @@ function renderImportResult(result) {
 function renderWordList() {
   const name = state.params.name;
   const type = state.params.type || "deck";
-  const words = type === "tag" ? getWordsForTag(name) : getWordsForDeck(name);
+  const words = type === "tag"
+    ? getWordsForTag(name)
+    : type === "phraseDeck"
+      ? getWordsForDeck(name).filter((word) => word.type === "phrase")
+      : getWordsForDeck(name);
 
   return `
     ${header(name || "Seznam")}
@@ -1219,8 +1506,26 @@ function renderProblems() {
     ${header("Problémová slovíčka")}
     <section class="stack">
       <button class="btn" type="button" data-action="practice-problems" ${words.length ? "" : "disabled"}>Procvičovat problémová</button>
-      ${words.map(renderWordRow).join("") || `<div class="empty-state">Žádná problémová slovíčka.</div>`}
+      ${words.map(renderProblemRow).join("") || `<div class="empty-state">Žádná problémová slovíčka.</div>`}
     </section>
+  `;
+}
+
+function renderProblemRow(word) {
+  return `
+    <article class="word-row">
+      <div>
+        <h2>${escapeHtml(word.en)}</h2>
+        <p><strong>${escapeHtml(word.cz)}</strong> ${word.pronounce ? `<span class="muted">[${escapeHtml(word.pronounce)}]</span>` : ""}</p>
+        ${word.example ? `<p class="muted">${escapeHtml(word.example)}</p>` : ""}
+        <div class="row-meta">
+          ${getDeckNames(word).map((deck) => `<span class="pill">${escapeHtml(deck)}</span>`).join("")}
+          <span class="pill">${word.problemHits || word.mistakes}× problém</span>
+          <span class="pill">${word.knownStreak || 0}/2 umím</span>
+        </div>
+      </div>
+      <button class="btn secondary" type="button" data-action="remove-problem" data-id="${escapeHtml(word.id)}">Už umím</button>
+    </article>
   `;
 }
 
@@ -1319,17 +1624,27 @@ function renderReader() {
   const reader = state.reader;
   const parsed = reader.parsed || parseReaderText(reader.text);
   const sentences = splitReaderSentences(parsed.text);
+  const history = reader.history || [];
 
   return `
-    ${header("Čtení textu")}
+    ${header("Čtení textu", true, `<button class="icon-button" type="button" data-action="speak-reader-text" aria-label="${reader.speaking ? "Zastavit čtení" : "Přečíst text"}">${reader.speaking ? "■" : "🔊"}</button>`)}
     <section class="stack">
-      <div class="notice">
-        Vlož anglický text z GPT. Kliknutí na slovo nebo frázi zobrazí překlad, další kliknutí ho schová. Dvojklik na větu zobrazí překlad celé věty.
-      </div>
+      <article class="panel reader-summary">
+        <div class="section-head">
+          <div>
+            <h2>${escapeHtml(parsed.title)}</h2>
+            <p class="muted">${sentences.length} vět · ${parsed.vocab.length} slov/frází ve slovníku</p>
+          </div>
+        </div>
+        <p class="muted">Kliknutí na slovo/frázi zobrazí překlad. Dvojklik na větu zobrazí překlad celé věty.</p>
+      </article>
+      <article class="reader-card">
+        ${sentences.length ? sentences.map((sentence, index) => renderReaderSentence(sentence, index, parsed)).join(" ") : `<p class="muted">Načti text pro čtení.</p>`}
+      </article>
       <div class="panel stack">
         <div class="import-help">
-          <strong>${escapeHtml(parsed.title)}</strong>
-          <p class="muted">${sentences.length} vět · ${parsed.vocab.length} slov/frází ve slovníku</p>
+          <strong>Vložený podklad</strong>
+          <p class="muted">Kliknutí na slovo/frázi zobrazí překlad. Dvojklik na větu zobrazí překlad celé věty.</p>
         </div>
         <textarea class="textarea reader-box" id="readerText" spellcheck="false" placeholder="${escapeHtml(READER_TEMPLATE)}">${escapeHtml(reader.text)}</textarea>
       </div>
@@ -1341,9 +1656,6 @@ function renderReader() {
         <span>Nahrát .txt soubor</span>
         <input type="file" accept=".txt,text/plain" data-action="reader-file">
       </label>
-      <article class="reader-card">
-        ${sentences.length ? sentences.map((sentence, index) => renderReaderSentence(sentence, index, parsed)).join(" ") : `<p class="muted">Načti text pro čtení.</p>`}
-      </article>
       ${parsed.errors.length ? `
         <div class="notice danger">
           <strong>Našel jsem chyby ve formátu:</strong>
@@ -1351,6 +1663,14 @@ function renderReader() {
             ${parsed.errors.map((error) => `<li>Řádek ${escapeHtml(error.line)}: ${escapeHtml(error.message)} <span class="muted">${escapeHtml(error.text)}</span></li>`).join("")}
           </ul>
         </div>
+      ` : ""}
+      ${history.length ? `
+        <details class="panel">
+          <summary>Historie čtení (${history.length})</summary>
+          <div class="stack history-list">
+            ${history.map((item) => `<button class="btn secondary" type="button" data-action="open-reader-history" data-id="${escapeHtml(item.id)}">${escapeHtml(item.title)}</button>`).join("")}
+          </div>
+        </details>
       ` : ""}
     </section>
   `;
@@ -1411,10 +1731,16 @@ function csvCell(value) {
 }
 
 function speak(text) {
+  speakByLanguage(text, "en-US");
+}
+
+function speakByLanguage(text, lang, cancel = true) {
   if (!("speechSynthesis" in window) || !text) return;
-  speechSynthesis.cancel();
+  if (cancel) speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "en-US";
+  utterance.lang = lang;
+  utterance.voice = getVoiceForLang(lang);
+  utterance.rate = getSpeechRate();
   speechSynthesis.speak(utterance);
 }
 
@@ -1427,11 +1753,36 @@ function speakText(text, lang, runId) {
 
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
-    utterance.rate = 0.92;
+    utterance.voice = getVoiceForLang(lang);
+    utterance.rate = getSpeechRate();
     utterance.onend = resolve;
     utterance.onerror = resolve;
     speechSynthesis.speak(utterance);
   });
+}
+
+function getAvailableVoices() {
+  if (!("speechSynthesis" in window)) return [];
+  return speechSynthesis.getVoices().slice().sort((a, b) => {
+    const langCompare = a.lang.localeCompare(b.lang, "cs-CZ");
+    return langCompare || a.name.localeCompare(b.name, "cs-CZ");
+  });
+}
+
+function getVoiceForLang(lang) {
+  if (!("speechSynthesis" in window)) return null;
+  const voices = getAvailableVoices();
+  const settingKey = lang.toLowerCase().startsWith("cs") ? "csVoice" : "enVoice";
+  const selected = state.voiceSettings[settingKey];
+  if (selected) {
+    const selectedVoice = voices.find((voice) => voice.name === selected);
+    if (selectedVoice) return selectedVoice;
+  }
+
+  const prefix = lang.split("-")[0].toLowerCase();
+  return voices.find((voice) => voice.lang.toLowerCase() === lang.toLowerCase())
+    || voices.find((voice) => voice.lang.toLowerCase().startsWith(`${prefix}-`))
+    || null;
 }
 
 async function speakMixedText(text, defaultLang, runId) {
@@ -1484,6 +1835,53 @@ function waitForListen(seconds, runId) {
 function clearListenTimers() {
   listenTimers.forEach((timer) => window.clearTimeout(timer));
   listenTimers.clear();
+}
+
+async function playPassiveWords(words, label) {
+  if (!("speechSynthesis" in window)) {
+    alert("Tento prohlížeč neumí hlasové čtení.");
+    return;
+  }
+  if (!words.length) {
+    alert("Tady zatím nejsou žádná slovíčka k poslechu.");
+    return;
+  }
+  stopPassiveListen(false);
+  const runId = listenRunId + 1;
+  listenRunId = runId;
+  state.passiveListen = { playing: true, label, currentStep: "Připravuji poslech" };
+  render();
+
+  for (const word of words) {
+    if (runId !== listenRunId || !state.passiveListen.playing) break;
+    state.passiveListen.currentStep = `EN 1/2: ${word.en}`;
+    render();
+    await speakText(word.en, "en-US", runId);
+    await waitForListen(1, runId);
+    if (runId !== listenRunId || !state.passiveListen.playing) break;
+    state.passiveListen.currentStep = `EN 2/2: ${word.en}`;
+    render();
+    await speakText(word.en, "en-US", runId);
+    await waitForListen(1, runId);
+    if (runId !== listenRunId || !state.passiveListen.playing) break;
+    state.passiveListen.currentStep = `CZ: ${word.cz}`;
+    render();
+    await speakText(word.cz, "cs-CZ", runId);
+    await waitForListen(1, runId);
+  }
+
+  if (runId === listenRunId) {
+    state.passiveListen = { playing: false, label: "", currentStep: "" };
+    render();
+  }
+}
+
+function stopPassiveListen(shouldRender = true) {
+  listenRunId += 1;
+  clearListenTimers();
+  state.passiveListen = { playing: false, label: "", currentStep: "" };
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  if (shouldRender) render();
 }
 
 function importWords() {
@@ -1606,6 +2004,32 @@ function loadReader() {
   state.reader.selectedToken = "";
   state.reader.selectedSentence = "";
   saveReaderText(state.reader.text);
+  addReaderHistory(state.reader.text, state.reader.parsed.title);
+  render();
+}
+
+function addReaderHistory(text, title) {
+  const cleanText = String(text || "").trim();
+  if (!cleanText) return;
+  const id = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const entry = {
+    id,
+    title: title || `Text ${new Date().toLocaleDateString("cs-CZ")}`,
+    text: cleanText,
+    createdAt: new Date().toISOString(),
+  };
+  state.reader.history = [entry, ...(state.reader.history || []).filter((item) => item.text !== cleanText)].slice(0, 20);
+  saveReaderHistory();
+}
+
+function openReaderHistory(id) {
+  const entry = (state.reader.history || []).find((item) => item.id === id);
+  if (!entry) return;
+  state.reader.text = entry.text;
+  state.reader.parsed = parseReaderText(entry.text);
+  state.reader.selectedToken = "";
+  state.reader.selectedSentence = "";
+  saveReaderText(entry.text);
   render();
 }
 
@@ -1630,6 +2054,7 @@ function loadReaderFile(file) {
     state.reader.selectedToken = "";
     state.reader.selectedSentence = "";
     saveReaderText(state.reader.text);
+    addReaderHistory(state.reader.text, state.reader.parsed.title);
     navigate("reader");
   };
   reader.onerror = () => alert("Soubor se nepodařilo načíst.");
@@ -1637,8 +2062,8 @@ function loadReaderFile(file) {
 }
 
 function deleteAll() {
-  if (!confirm("Opravdu smazat všechna uložená slovíčka? Pevná nepravidelná slovesa se znovu připraví při dalším načtení.")) return;
-  state.words = mergeWords([], buildIrregularVerbs()).words;
+  if (!confirm("Opravdu smazat všechna vlastní data? Výchozí lekce a nepravidelná slovesa se znovu připraví.")) return;
+  state.words = mergeWords([], [...buildDefaultVocabularyWords(), ...buildIrregularVerbs()]).words;
   state.practice = null;
   saveWords();
   navigate("home");
@@ -1680,6 +2105,13 @@ function startTagPractice(tag, limit = null) {
   startPractice(words, label, limit ? "tag-short" : "tag", { type: "tag", name: tag, limit });
 }
 
+function startPhraseDeckPractice(deck, limit = null) {
+  const allWords = getWordsForDeck(deck).filter((word) => word.type === "phrase");
+  const words = limit ? selectSmartWords(allWords, limit) : allWords;
+  const label = limit ? `${deck} · fráze · ${words.length}` : `${deck} · fráze`;
+  startPractice(words, label, limit ? "phrase-short" : "phrase", { type: "phraseDeck", name: deck, limit });
+}
+
 function startProblemPractice() {
   const words = getProblemWords();
   startPractice(words, "Problémová slovíčka", "problems", { type: "problems" });
@@ -1690,6 +2122,7 @@ function restartPractice() {
   const restart = state.practice.restart || {};
   if (restart.type === "smart") return startSmartPractice();
   if (restart.type === "tag") return startTagPractice(restart.name, restart.limit || null);
+  if (restart.type === "phraseDeck") return startPhraseDeckPractice(restart.name, restart.limit || null);
   if (restart.type === "problems") return startProblemPractice();
   if (restart.type === "deck") return startDeckPractice(restart.name, restart.limit || null);
   startSmartPractice();
@@ -1707,9 +2140,16 @@ function markCurrent(isCorrect) {
   if (isCorrect) {
     word.correct = Number(word.correct || 0) + 1;
     word.streak = Number(word.streak || 0) + 1;
+    if (word.isProblem) {
+      word.knownStreak = Number(word.knownStreak || 0) + 1;
+      if (word.knownStreak >= 2) word.isProblem = false;
+    }
     practice.queue.shift();
   } else {
     word.mistakes = Number(word.mistakes || 0) + 1;
+    word.isProblem = true;
+    word.problemHits = Number(word.problemHits || 0) + 1;
+    word.knownStreak = 0;
     word.streak = 0;
     word.lastWrongAt = now;
     practice.roundMistakes += 1;
@@ -1719,6 +2159,46 @@ function markCurrent(isCorrect) {
   practice.flipped = false;
   practice.done = practice.queue.length === 0;
   saveWords();
+  render();
+}
+
+function removeProblem(id) {
+  const word = state.words.find((item) => item.id === id);
+  if (!word) return;
+  word.isProblem = false;
+  word.knownStreak = 2;
+  saveWords();
+  render();
+}
+
+function stopReaderSpeech(shouldRender = true) {
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  state.reader.speaking = false;
+  if (shouldRender && state.view === "reader") render();
+}
+
+function speakReaderText() {
+  const parsed = state.reader.parsed || parseReaderText(state.reader.text);
+  if (!parsed.text) return;
+  if (!("speechSynthesis" in window)) return;
+
+  if (state.reader.speaking) {
+    stopReaderSpeech();
+    return;
+  }
+
+  speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(parsed.text);
+  utterance.lang = "en-US";
+  utterance.voice = getVoiceForLang("en-US");
+  utterance.rate = getSpeechRate();
+  utterance.onend = () => {
+    state.reader.speaking = false;
+    if (state.view === "reader") render();
+  };
+  utterance.onerror = utterance.onend;
+  state.reader.speaking = true;
+  speechSynthesis.speak(utterance);
   render();
 }
 
@@ -1809,6 +2289,11 @@ app.addEventListener("click", (event) => {
   if (action === "listen-prompt") navigate("listenPrompt");
   if (action === "reader") navigate("reader");
   if (action === "reader-prompt") navigate("readerPrompt");
+  if (action === "settings") navigate("settings");
+  if (action === "phrases") navigate("phrases");
+  if (action === "listening-hub") navigate("listeningHub");
+  if (action === "irregulars") navigate("irregulars");
+  if (action === "grammar") navigate("grammar");
   if (action === "smart-practice") startSmartPractice();
   if (action === "problems") navigate("problems");
   if (action === "export") navigate("export");
@@ -1820,6 +2305,8 @@ app.addEventListener("click", (event) => {
   if (action === "restart-custom-listen") restartCustomListen();
   if (action === "next-custom-listen") nextCustomListen();
   if (action === "load-reader") loadReader();
+  if (action === "speak-reader-text") speakReaderText();
+  if (action === "open-reader-history") openReaderHistory(id);
   if (action === "reader-token") {
     if (event.detail >= 2) {
       toggleReaderSentence(target.dataset.sentence);
@@ -1832,10 +2319,16 @@ app.addEventListener("click", (event) => {
   }
   if (action === "word-list") navigate("wordList", { type: target.dataset.type || "deck", name });
   if (action === "delete-word") deleteWord(id);
+  if (action === "remove-problem") removeProblem(id);
   if (action === "practice-deck") startDeckPractice(name);
   if (action === "practice-deck-short") startDeckPractice(name, SMART_LIMIT);
   if (action === "practice-tag") startTagPractice(name);
   if (action === "practice-tag-short") startTagPractice(name, SMART_LIMIT);
+  if (action === "practice-phrase-deck") startPhraseDeckPractice(name);
+  if (action === "practice-phrase-deck-short") startPhraseDeckPractice(name, SMART_LIMIT);
+  if (action === "listen-deck" || action === "listen-deck-words") playPassiveWords(getWordsForDeck(name).filter((word) => word.type !== "phrase"), `${name} · slovíčka`);
+  if (action === "listen-deck-phrases") playPassiveWords(getWordsForDeck(name).filter((word) => word.type === "phrase"), `${name} · fráze`);
+  if (action === "stop-passive-listen") stopPassiveListen();
   if (action === "practice-problems") startProblemPractice();
   if (action === "restart-practice") restartPractice();
   if (action === "flip-card") {
@@ -1856,13 +2349,36 @@ app.addEventListener("click", (event) => {
   if (action === "copy-listen-prompt") copyListenPrompt();
   if (action === "copy-reader-prompt") copyReaderPrompt();
   if (action === "download-export") downloadExport();
+  if (action === "test-en-voice") speakByLanguage("I bought a ticket yesterday.", "en-US");
+  if (action === "test-cs-voice") speakByLanguage("Včera jsem si koupil lístek.", "cs-CZ");
 });
 
 app.addEventListener("change", (event) => {
   const target = event.target.closest("[data-action]");
   if (!target) return;
   if (target.dataset.action === "reader-file") loadReaderFile(target.files?.[0]);
+  if (target.dataset.action === "voice-select") {
+    state.voiceSettings[target.dataset.setting] = target.value;
+    saveVoiceSettings();
+  }
 });
+
+app.addEventListener("input", (event) => {
+  const target = event.target.closest("[data-action]");
+  if (!target) return;
+  if (target.dataset.action === "voice-rate") {
+    state.voiceSettings.rate = clampNumber(target.value, 0.65, 1.05, 0.86);
+    saveVoiceSettings();
+    const label = target.closest(".field-label")?.querySelector(".voice-rate-value");
+    if (label) label.textContent = state.voiceSettings.rate.toFixed(2);
+  }
+});
+
+if ("speechSynthesis" in window) {
+  speechSynthesis.onvoiceschanged = () => {
+    if (state.view === "settings") render();
+  };
+}
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

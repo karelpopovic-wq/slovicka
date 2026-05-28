@@ -1,0 +1,5 @@
+[[voice Samantha]] bought. koupit.
+I bought a ticket.
+I bought a ticket.
+[[slnc 3000]]
+[[voice Zuzana]] Koupil jsem lístek.

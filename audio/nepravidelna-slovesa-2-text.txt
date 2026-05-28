@@ -1,0 +1,229 @@
+[[voice Samantha]] Irregular verbs. Part two. Past simple listening.
+[[slnc 1500]]
+
+[[voice Samantha]] got.
+[[voice Zuzana]] dostat nebo získat. Minulý čas od slovesa get.
+[[slnc 1000]]
+[[voice Samantha]] I got a message.
+I got a message.
+[[slnc 5000]]
+[[voice Zuzana]] Dostal jsem zprávu.
+[[slnc 1000]]
+[[voice Samantha]] She got a new job.
+She got a new job.
+[[slnc 5000]]
+[[voice Zuzana]] Dostala novou práci.
+[[slnc 1000]]
+[[voice Samantha]] We got home late.
+We got home late.
+[[slnc 5000]]
+[[voice Zuzana]] Dostali jsme se domů pozdě.
+[[slnc 2000]]
+
+[[voice Samantha]] gave.
+[[voice Zuzana]] dát. Minulý čas od slovesa give.
+[[slnc 1000]]
+[[voice Samantha]] She gave me advice.
+She gave me advice.
+[[slnc 5000]]
+[[voice Zuzana]] Dala mi radu.
+[[slnc 1000]]
+[[voice Samantha]] I gave him my number.
+I gave him my number.
+[[slnc 5000]]
+[[voice Zuzana]] Dal jsem mu své číslo.
+[[slnc 1000]]
+[[voice Samantha]] They gave us a map.
+They gave us a map.
+[[slnc 5000]]
+[[voice Zuzana]] Dali nám mapu.
+[[slnc 2000]]
+
+[[voice Samantha]] went.
+[[voice Zuzana]] jít nebo jet. Minulý čas od slovesa go.
+[[slnc 1000]]
+[[voice Samantha]] We went away for the weekend.
+We went away for the weekend.
+[[slnc 5000]]
+[[voice Zuzana]] Odjeli jsme pryč na víkend.
+[[slnc 1000]]
+[[voice Samantha]] I went to work by bus.
+I went to work by bus.
+[[slnc 5000]]
+[[voice Zuzana]] Jel jsem do práce autobusem.
+[[slnc 1000]]
+[[voice Samantha]] They went sightseeing.
+They went sightseeing.
+[[slnc 5000]]
+[[voice Zuzana]] Šli si prohlížet památky.
+[[slnc 2000]]
+
+[[voice Samantha]] had.
+[[voice Zuzana]] mít. Minulý čas od slovesa have.
+[[slnc 1000]]
+[[voice Samantha]] I had a good idea.
+I had a good idea.
+[[slnc 5000]]
+[[voice Zuzana]] Měl jsem dobrý nápad.
+[[slnc 1000]]
+[[voice Samantha]] We had a good time.
+We had a good time.
+[[slnc 5000]]
+[[voice Zuzana]] Dobře jsme se bavili.
+[[slnc 1000]]
+[[voice Samantha]] She had a problem.
+She had a problem.
+[[slnc 5000]]
+[[voice Zuzana]] Měla problém.
+[[slnc 2000]]
+
+[[voice Samantha]] knew.
+[[voice Zuzana]] vědět nebo znát. Minulý čas od slovesa know.
+[[slnc 1000]]
+[[voice Samantha]] I knew the answer.
+I knew the answer.
+[[slnc 5000]]
+[[voice Zuzana]] Znal jsem odpověď.
+[[slnc 1000]]
+[[voice Samantha]] She knew his name.
+She knew his name.
+[[slnc 5000]]
+[[voice Zuzana]] Znala jeho jméno.
+[[slnc 1000]]
+[[voice Samantha]] We knew it was difficult.
+We knew it was difficult.
+[[slnc 5000]]
+[[voice Zuzana]] Věděli jsme, že to bylo těžké.
+[[slnc 2000]]
+
+[[voice Samantha]] made.
+[[voice Zuzana]] udělat nebo vyrobit. Minulý čas od slovesa make.
+[[slnc 1000]]
+[[voice Samantha]] They made a mistake.
+They made a mistake.
+[[slnc 5000]]
+[[voice Zuzana]] Udělali chybu.
+[[slnc 1000]]
+[[voice Samantha]] I made dinner.
+I made dinner.
+[[slnc 5000]]
+[[voice Zuzana]] Udělal jsem večeři.
+[[slnc 1000]]
+[[voice Samantha]] She made a phone call.
+She made a phone call.
+[[slnc 5000]]
+[[voice Zuzana]] Zavolala telefonem.
+[[slnc 2000]]
+
+[[voice Samantha]] met.
+[[voice Zuzana]] potkat. Minulý čas od slovesa meet.
+[[slnc 1000]]
+[[voice Samantha]] We met yesterday.
+We met yesterday.
+[[slnc 5000]]
+[[voice Zuzana]] Potkali jsme se včera.
+[[slnc 1000]]
+[[voice Samantha]] I met my friend.
+I met my friend.
+[[slnc 5000]]
+[[voice Zuzana]] Potkal jsem svého kamaráda.
+[[slnc 1000]]
+[[voice Samantha]] She met him at work.
+She met him at work.
+[[slnc 5000]]
+[[voice Zuzana]] Potkala ho v práci.
+[[slnc 2000]]
+
+[[voice Samantha]] read.
+[[voice Zuzana]] číst. Minulý čas od slovesa read.
+[[slnc 1000]]
+[[voice Samantha]] I read the article yesterday.
+I read the article yesterday.
+[[slnc 5000]]
+[[voice Zuzana]] Včera jsem četl článek.
+[[slnc 1000]]
+[[voice Samantha]] She read a book.
+She read a book.
+[[slnc 5000]]
+[[voice Zuzana]] Četla knihu.
+[[slnc 1000]]
+[[voice Samantha]] We read the instructions.
+We read the instructions.
+[[slnc 5000]]
+[[voice Zuzana]] Přečetli jsme si instrukce.
+[[slnc 2000]]
+
+[[voice Samantha]] saw.
+[[voice Zuzana]] vidět. Minulý čas od slovesa see.
+[[slnc 1000]]
+[[voice Samantha]] I saw him yesterday.
+I saw him yesterday.
+[[slnc 5000]]
+[[voice Zuzana]] Viděl jsem ho včera.
+[[slnc 1000]]
+[[voice Samantha]] She saw a beautiful house.
+She saw a beautiful house.
+[[slnc 5000]]
+[[voice Zuzana]] Viděla krásný dům.
+[[slnc 1000]]
+[[voice Samantha]] We saw the film.
+We saw the film.
+[[slnc 5000]]
+[[voice Zuzana]] Viděli jsme ten film.
+[[slnc 2000]]
+
+[[voice Samantha]] spoke.
+[[voice Zuzana]] mluvit. Minulý čas od slovesa speak.
+[[slnc 1000]]
+[[voice Samantha]] She spoke English.
+She spoke English.
+[[slnc 5000]]
+[[voice Zuzana]] Mluvila anglicky.
+[[slnc 1000]]
+[[voice Samantha]] I spoke to my boss.
+I spoke to my boss.
+[[slnc 5000]]
+[[voice Zuzana]] Mluvil jsem se svým šéfem.
+[[slnc 1000]]
+[[voice Samantha]] They spoke very slowly.
+They spoke very slowly.
+[[slnc 5000]]
+[[voice Zuzana]] Mluvili velmi pomalu.
+[[slnc 2000]]
+
+[[voice Samantha]] took.
+[[voice Zuzana]] vzít. Minulý čas od slovesa take.
+[[slnc 1000]]
+[[voice Samantha]] He took a photo.
+He took a photo.
+[[slnc 5000]]
+[[voice Zuzana]] Vyfotil fotku.
+[[slnc 1000]]
+[[voice Samantha]] I took the train.
+I took the train.
+[[slnc 5000]]
+[[voice Zuzana]] Jel jsem vlakem.
+[[slnc 1000]]
+[[voice Samantha]] She took my bag.
+She took my bag.
+[[slnc 5000]]
+[[voice Zuzana]] Vzala mi tašku.
+[[slnc 2000]]
+
+[[voice Samantha]] wrote.
+[[voice Zuzana]] psát. Minulý čas od slovesa write.
+[[slnc 1000]]
+[[voice Samantha]] I wrote a note.
+I wrote a note.
+[[slnc 5000]]
+[[voice Zuzana]] Napsal jsem poznámku.
+[[slnc 1000]]
+[[voice Samantha]] She wrote an email.
+She wrote an email.
+[[slnc 5000]]
+[[voice Zuzana]] Napsala e-mail.
+[[slnc 1000]]
+[[voice Samantha]] We wrote the answers.
+We wrote the answers.
+[[slnc 5000]]
+[[voice Zuzana]] Napsali jsme odpovědi.

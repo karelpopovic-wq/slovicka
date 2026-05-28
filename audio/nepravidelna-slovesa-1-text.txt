@@ -1,0 +1,229 @@
+[[voice Samantha]] Irregular verbs. Part one. Past simple listening.
+[[slnc 1500]]
+
+[[voice Samantha]] was, were.
+[[voice Zuzana]] být. Minulý čas od slovesa be.
+[[slnc 1000]]
+[[voice Samantha]] I was at home yesterday.
+I was at home yesterday.
+[[slnc 5000]]
+[[voice Zuzana]] Včera jsem byl doma.
+[[slnc 1000]]
+[[voice Samantha]] They were very tired.
+They were very tired.
+[[slnc 5000]]
+[[voice Zuzana]] Byli velmi unavení.
+[[slnc 1000]]
+[[voice Samantha]] She was in Prague last week.
+She was in Prague last week.
+[[slnc 5000]]
+[[voice Zuzana]] Minulý týden byla v Praze.
+[[slnc 2000]]
+
+[[voice Samantha]] became.
+[[voice Zuzana]] stát se. Minulý čas od slovesa become.
+[[slnc 1000]]
+[[voice Samantha]] She became a doctor.
+She became a doctor.
+[[slnc 5000]]
+[[voice Zuzana]] Stala se lékařkou.
+[[slnc 1000]]
+[[voice Samantha]] He became very famous.
+He became very famous.
+[[slnc 5000]]
+[[voice Zuzana]] Stal se velmi slavným.
+[[slnc 1000]]
+[[voice Samantha]] The trip became a disaster.
+The trip became a disaster.
+[[slnc 5000]]
+[[voice Zuzana]] Z výletu se stala katastrofa.
+[[slnc 2000]]
+
+[[voice Samantha]] began.
+[[voice Zuzana]] začít. Minulý čas od slovesa begin.
+[[slnc 1000]]
+[[voice Samantha]] The lesson began at nine.
+The lesson began at nine.
+[[slnc 5000]]
+[[voice Zuzana]] Lekce začala v devět.
+[[slnc 1000]]
+[[voice Samantha]] It began to rain.
+It began to rain.
+[[slnc 5000]]
+[[voice Zuzana]] Začalo pršet.
+[[slnc 1000]]
+[[voice Samantha]] We began our journey early.
+We began our journey early.
+[[slnc 5000]]
+[[voice Zuzana]] Začali jsme naši cestu brzy.
+[[slnc 2000]]
+
+[[voice Samantha]] broke.
+[[voice Zuzana]] rozbít nebo zlomit. Minulý čas od slovesa break.
+[[slnc 1000]]
+[[voice Samantha]] He broke his phone.
+He broke his phone.
+[[slnc 5000]]
+[[voice Zuzana]] Rozbil si telefon.
+[[slnc 1000]]
+[[voice Samantha]] I broke the glass.
+I broke the glass.
+[[slnc 5000]]
+[[voice Zuzana]] Rozbil jsem sklenici.
+[[slnc 1000]]
+[[voice Samantha]] She broke her arm.
+She broke her arm.
+[[slnc 5000]]
+[[voice Zuzana]] Zlomila si ruku.
+[[slnc 2000]]
+
+[[voice Samantha]] brought.
+[[voice Zuzana]] přinést. Minulý čas od slovesa bring.
+[[slnc 1000]]
+[[voice Samantha]] She brought a cake.
+She brought a cake.
+[[slnc 5000]]
+[[voice Zuzana]] Přinesla dort.
+[[slnc 1000]]
+[[voice Samantha]] I brought my book.
+I brought my book.
+[[slnc 5000]]
+[[voice Zuzana]] Přinesl jsem si knihu.
+[[slnc 1000]]
+[[voice Samantha]] They brought good news.
+They brought good news.
+[[slnc 5000]]
+[[voice Zuzana]] Přinesli dobré zprávy.
+[[slnc 2000]]
+
+[[voice Samantha]] bought.
+[[voice Zuzana]] koupit. Minulý čas od slovesa buy.
+[[slnc 1000]]
+[[voice Samantha]] I bought a ticket.
+I bought a ticket.
+[[slnc 5000]]
+[[voice Zuzana]] Koupil jsem lístek.
+[[slnc 1000]]
+[[voice Samantha]] She bought a new phone.
+She bought a new phone.
+[[slnc 5000]]
+[[voice Zuzana]] Koupila si nový telefon.
+[[slnc 1000]]
+[[voice Samantha]] We bought some food.
+We bought some food.
+[[slnc 5000]]
+[[voice Zuzana]] Koupili jsme nějaké jídlo.
+[[slnc 2000]]
+
+[[voice Samantha]] came.
+[[voice Zuzana]] přijít. Minulý čas od slovesa come.
+[[slnc 1000]]
+[[voice Samantha]] They came late.
+They came late.
+[[slnc 5000]]
+[[voice Zuzana]] Přišli pozdě.
+[[slnc 1000]]
+[[voice Samantha]] She came home at six.
+She came home at six.
+[[slnc 5000]]
+[[voice Zuzana]] Přišla domů v šest.
+[[slnc 1000]]
+[[voice Samantha]] We came by train.
+We came by train.
+[[slnc 5000]]
+[[voice Zuzana]] Přijeli jsme vlakem.
+[[slnc 2000]]
+
+[[voice Samantha]] did.
+[[voice Zuzana]] dělat. Minulý čas od slovesa do.
+[[slnc 1000]]
+[[voice Samantha]] I did my homework.
+I did my homework.
+[[slnc 5000]]
+[[voice Zuzana]] Udělal jsem domácí úkol.
+[[slnc 1000]]
+[[voice Samantha]] What did you do yesterday?
+What did you do yesterday?
+[[slnc 5000]]
+[[voice Zuzana]] Co jsi dělal včera?
+[[slnc 1000]]
+[[voice Samantha]] They did a good job.
+They did a good job.
+[[slnc 5000]]
+[[voice Zuzana]] Odvedli dobrou práci.
+[[slnc 2000]]
+
+[[voice Samantha]] drank.
+[[voice Zuzana]] pít. Minulý čas od slovesa drink.
+[[slnc 1000]]
+[[voice Samantha]] She drank water.
+She drank water.
+[[slnc 5000]]
+[[voice Zuzana]] Pila vodu.
+[[slnc 1000]]
+[[voice Samantha]] We drank coffee.
+We drank coffee.
+[[slnc 5000]]
+[[voice Zuzana]] Pili jsme kávu.
+[[slnc 1000]]
+[[voice Samantha]] He drank too much.
+He drank too much.
+[[slnc 5000]]
+[[voice Zuzana]] Vypil toho příliš.
+[[slnc 2000]]
+
+[[voice Samantha]] drove.
+[[voice Zuzana]] řídit nebo jet autem. Minulý čas od slovesa drive.
+[[slnc 1000]]
+[[voice Samantha]] He drove to Prague.
+He drove to Prague.
+[[slnc 5000]]
+[[voice Zuzana]] Jel autem do Prahy.
+[[slnc 1000]]
+[[voice Samantha]] I drove home.
+I drove home.
+[[slnc 5000]]
+[[voice Zuzana]] Jel jsem autem domů.
+[[slnc 1000]]
+[[voice Samantha]] They drove all night.
+They drove all night.
+[[slnc 5000]]
+[[voice Zuzana]] Jeli autem celou noc.
+[[slnc 2000]]
+
+[[voice Samantha]] ate.
+[[voice Zuzana]] jíst. Minulý čas od slovesa eat.
+[[slnc 1000]]
+[[voice Samantha]] We ate dinner.
+We ate dinner.
+[[slnc 5000]]
+[[voice Zuzana]] Jedli jsme večeři.
+[[slnc 1000]]
+[[voice Samantha]] I ate a sandwich.
+I ate a sandwich.
+[[slnc 5000]]
+[[voice Zuzana]] Snědl jsem sendvič.
+[[slnc 1000]]
+[[voice Samantha]] She ate very quickly.
+She ate very quickly.
+[[slnc 5000]]
+[[voice Zuzana]] Jedla velmi rychle.
+[[slnc 2000]]
+
+[[voice Samantha]] found.
+[[voice Zuzana]] najít. Minulý čas od slovesa find.
+[[slnc 1000]]
+[[voice Samantha]] I found my keys.
+I found my keys.
+[[slnc 5000]]
+[[voice Zuzana]] Našel jsem svoje klíče.
+[[slnc 1000]]
+[[voice Samantha]] She found a good hotel.
+She found a good hotel.
+[[slnc 5000]]
+[[voice Zuzana]] Našla dobrý hotel.
+[[slnc 1000]]
+[[voice Samantha]] We found the answer.
+We found the answer.
+[[slnc 5000]]
+[[voice Zuzana]] Našli jsme odpověď.
