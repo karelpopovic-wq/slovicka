@@ -2061,7 +2061,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "adj",
     "pronounce": "ˈwʌndəfl",
     "example": "The weather is wonderful .",
-    "cz": "báječný More words in File 2",
+    "cz": "báječný",
     "type": "word",
     "tags": [
       "základní"
@@ -3009,7 +3009,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "n",
     "pronounce": "ˈwaɪ faɪ",
     "example": "Does this hotel have free Wi-Fi? I need to check my email.",
-    "cz": "wi-fi More words in File 3",
+    "cz": "wi-fi",
     "type": "word",
     "tags": [
       "obecné"
@@ -4077,7 +4077,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "n",
     "pronounce": "ˈwedɪŋ dres",
     "example": "She designed Sarah Ferguson’s wedding dress.",
-    "cz": "svatební šaty More words in File 4",
+    "cz": "svatební šaty",
     "type": "phrase",
     "tags": [
       "obecné"
@@ -4869,7 +4869,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "",
     "pronounce": "ˈweɪst taɪm",
     "example": "I don’t watch much TV because I don’t like to waste time.",
-    "cz": "plýtvat časem More words in File 5",
+    "cz": "plýtvat časem",
     "type": "phrase",
     "tags": [
       "describing a town"
@@ -5433,7 +5433,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "n",
     "pronounce": "ˈtaʊəl",
     "example": "Can I borrow a towel for the shower?",
-    "cz": "ručník More words in File 6",
+    "cz": "ručník",
     "type": "word",
     "tags": [
       "opposite verbs"
@@ -5841,7 +5841,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "adj",
     "pronounce": "wiːk",
     "example": "No father likes a weak handshake!",
-    "cz": "slabý More words in File 7",
+    "cz": "slabý",
     "type": "word",
     "tags": [
       "verb forms"
@@ -6693,7 +6693,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "v",
     "pronounce": "ˈwɪspə",
     "example": "Whisper the answer to me, so no one can hear.",
-    "cz": "pošeptat More words in File 8",
+    "cz": "pošeptat",
     "type": "word",
     "tags": [
       "get"
@@ -8421,7 +8421,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "v",
     "pronounce": "weɪv",
     "example": "I would wave my hand to make it go out.",
-    "cz": "zamávat More words in File 9",
+    "cz": "zamávat",
     "type": "word",
     "tags": [
       "animals"
@@ -9105,7 +9105,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "pl n",
     "pronounce": "səbˈdʒekts",
     "example": "Did you study any other subjects at primary or secondary school?",
-    "cz": "předměty More words in File 10",
+    "cz": "předměty",
     "type": "word",
     "tags": [
       "obecné"
@@ -9957,7 +9957,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "n",
     "pronounce": "ˈwɪndsɜːfɪŋ",
     "example": "You need a strong wind to go windsurfing.",
-    "cz": "windsurfing More words in File 11",
+    "cz": "windsurfing",
     "type": "word",
     "tags": [
       "expressing movement"
