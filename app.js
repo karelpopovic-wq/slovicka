@@ -126,7 +126,10 @@ Další anglická věta. = Český překlad celé věty.
 Pravidla:
 - Připrav anglický text podle tématu, které zadám.
 - Věty udržuj krátké a čitelné.
-- Do VOCAB vlož hlavně slova a fráze, které by mohly být těžké.
+- Do VOCAB vlož všechny významové výrazy z textu: podstatná jména, slovesa, přídavná jména, příslovce, důležité předložkové vazby a fráze.
+- Do VOCAB vždy vlož všechna slovesa přesně v tom tvaru, ve kterém jsou v textu, hlavně tvary minulého času, například was, were, went, gave, became, worked, painted.
+- U pravidelných sloves v minulém čase napiš překlad minulého času, například worked = pracoval, moved = přestěhoval se, wanted = chtěl.
+- U nepravidelných sloves v minulém čase napiš překlad minulého času, například was = byl, went = šel / jel, gave = dal, became = stal se.
 - Pokud je důležitá fráze, dej ji do VOCAB jako celou frázi, například hired a car = půjčil si auto.
 - Fráze mají přednost před jednotlivými slovy.
 - Každá věta z TEXT musí být také v SENTENCES se svým českým překladem.
@@ -741,8 +744,10 @@ function splitReaderSentences(text) {
 function findReaderMatches(sentence, vocab) {
   const matches = [];
   const occupied = Array(sentence.length).fill(false);
+  const vocabMap = new Map(vocab.map((item) => [readerKey(item.en), item.cz]));
 
   vocab.forEach((item) => {
+    if (!item.en.includes(" ")) return;
     const escaped = item.en.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const pattern = new RegExp(`(^|[^A-Za-z])(${escaped})(?=$|[^A-Za-z])`, "gi");
     let match;
@@ -752,11 +757,60 @@ function findReaderMatches(sentence, vocab) {
       const end = start + match[2].length;
       if (occupied.slice(start, end).some(Boolean)) continue;
       for (let i = start; i < end; i += 1) occupied[i] = true;
-      matches.push({ start, end, en: sentence.slice(start, end), cz: item.cz });
+      matches.push({ start, end, en: sentence.slice(start, end), cz: item.cz, type: "phrase" });
     }
   });
 
+  const wordPattern = /[A-Za-z]+(?:['-][A-Za-z]+)*/g;
+  let wordMatch;
+  while ((wordMatch = wordPattern.exec(sentence)) !== null) {
+    const start = wordMatch.index;
+    const end = start + wordMatch[0].length;
+    if (occupied.slice(start, end).some(Boolean)) continue;
+
+    const text = sentence.slice(start, end);
+    const translation = findReaderWordTranslation(text, vocabMap);
+    for (let i = start; i < end; i += 1) occupied[i] = true;
+    matches.push({
+      start,
+      end,
+      en: text,
+      cz: translation || `Chybí překlad: ${text}`,
+      missing: !translation,
+      type: "word",
+    });
+  }
+
   return matches.sort((a, b) => a.start - b.start);
+}
+
+function findReaderWordTranslation(word, vocabMap) {
+  const forms = readerWordForms(word);
+  for (const form of forms) {
+    const translation = vocabMap.get(readerKey(form));
+    if (translation) return translation;
+  }
+  return "";
+}
+
+function readerWordForms(word) {
+  const value = normalize(word).toLocaleLowerCase("en-US");
+  const forms = [value];
+
+  if (value.endsWith("ied") && value.length > 4) forms.push(`${value.slice(0, -3)}y`);
+  if (value.endsWith("ed") && value.length > 3) {
+    forms.push(value.slice(0, -2));
+    forms.push(value.slice(0, -1));
+  }
+  if (value.endsWith("ing") && value.length > 5) {
+    forms.push(value.slice(0, -3));
+    forms.push(`${value.slice(0, -3)}e`);
+  }
+  if (value.endsWith("ies") && value.length > 4) forms.push(`${value.slice(0, -3)}y`);
+  if (value.endsWith("es") && value.length > 3) forms.push(value.slice(0, -2));
+  if (value.endsWith("s") && value.length > 3) forms.push(value.slice(0, -1));
+
+  return uniqueList(forms);
 }
 
 function getDeckNames(word) {
@@ -1316,7 +1370,7 @@ function renderReaderSentence(sentence, sentenceIndex, parsed) {
     const tokenId = `${sentenceIndex}-${tokenIndex}`;
     const selected = state.reader.selectedToken === tokenId;
     parts.push(`
-      <span class="reader-token ${selected ? "active" : ""}" data-action="reader-token" data-token="${tokenId}" data-sentence="${sentenceId}" data-translation="${escapeHtml(match.cz)}">
+      <span class="reader-token ${selected ? "active" : ""} ${match.missing ? "missing" : ""} ${match.type === "phrase" ? "phrase" : ""}" data-action="reader-token" data-token="${tokenId}" data-sentence="${sentenceId}" data-translation="${escapeHtml(match.cz)}">
         ${selected ? `<span class="reader-bubble">${escapeHtml(match.cz)}</span>` : ""}
         ${escapeHtml(match.en)}
       </span>
