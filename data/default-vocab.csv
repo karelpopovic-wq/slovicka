@@ -33,8 +33,8 @@ Lekce 1;describing people;gloves;ɡlʌvz;rukavice;Some people wear gloves when t
 Lekce 1;describing people;guy;ɡaɪ;chlap;Perhaps Holly could find me a guy who is more compatible.;English File: n
 Lekce 1;describing people;guy;ɡaɪ;kluk;Perhaps Holly could find me a guy who is more compatible.;English File: n
 Lekce 1;describing people;hard-working;hɑːd ˈwɜːkɪŋ;pilný;She never stops. She is so hard-working.;English File: adj
-Lekce 1;describing people;hat;hæt;klobouk;Where’s my hat? It’s cold outside!;English File: n
 Lekce 1;describing people;hat;hæt;čepice;Where’s my hat? It’s cold outside!;English File: n
+Lekce 1;describing people;hat;hæt;klobouk;Where’s my hat? It’s cold outside!;English File: n
 Lekce 1;describing people;height;haɪt;výška;He’s medium height and very thin.;English File: n
 Lekce 1;describing people;infidelity;ˌɪnfɪˈdeləti;nevěra;The cat is a symbol of infidelity.;English File: n
 Lekce 1;describing people;jacket;ˈdʒækɪt;bunda;I don’t always wear a suit but I do wear a jacket.;English File: n
@@ -58,8 +58,8 @@ Lekce 1;describing people;poster;ˈpəʊstə;plakát;I have an unusual poster on
 Lekce 1;describing people;prefer;prɪˈfɜː;upřednostňovat;I prefer tall men who have a really nice smile.;English File: v
 Lekce 1;describing people;pregnant;ˈpreɡnənt;těhotná;I am pregnant, and the baby is due in May.;English File: adj
 Lekce 1;describing people;quiet;ˈkwaɪət;tichý;She is really quiet. She doesn’t say much.;English File: adj
-Lekce 1;describing people;red;red;zrzavý (o vlasech);She has curly red hair.;English File: adj
 Lekce 1;describing people;red;red;červený (obecně);She has curly red hair.;English File: adj
+Lekce 1;describing people;red;red;zrzavý (o vlasech);She has curly red hair.;English File: adj
 Lekce 1;describing people;relationship;rɪˈleɪʃnʃɪp;vztah;What was David Hockney’s relationship with Mr and Mrs Clark?;English File: n
 Lekce 1;describing people;relax;rɪˈlæks;odpočívat;What clothes do you wear when you want to relax at the weekend?;English File: v
 Lekce 1;describing people;relax;rɪˈlæks;relaxovat;What clothes do you wear when you want to relax at the weekend?;English File: v
@@ -98,7 +98,7 @@ Lekce 1;describing people;trainers;ˈtreɪnəz;běžecké boty;I don’t like tr
 Lekce 1;describing people;trainers;ˈtreɪnəz;sportovní;I don’t like trainers. I prefer shoes.;English File: pl n
 Lekce 1;describing people;trousers;ˈtraʊzəz;kalhoty;Most of my trousers are black.;English File: pl n
 Lekce 1;describing people;unfriendly;ʌnˈfrendli;nepřátelský;Nobody wants to spend time with him because he’s so unfriendly.;English File: adj
-Lekce 1;describing people;unkind;ˌʌnˈkaɪnd;nepříjemný Things you wear;Don’t be so unkind. It’s not nice.;English File: adj
+Lekce 1;charakter;unkind;ˌʌnˈkaɪnd;nepříjemný, nelaskavý;Don’t be so unkind. It’s not nice.;English File: adj
 Lekce 1;describing people;unusual;ʌnˈjuːʒəl;neobvyklý;The position of the couple in the painting is unusual.;English File: adj
 Lekce 1;describing people;vase;vɑːz;váza;There’s a table, and a vase with flowers it.;English File: n
 Lekce 1;describing people;wear;weə;mít na sobě;They wear the same clothes nearly every day.;English File: v
@@ -110,8 +110,8 @@ Lekce 1;describing people;get on well with;ɡet ɒn wel wɪð;dobře vycházet s
 Lekce 1;describing people;go on a date;ɡəʊ ɒn ə deɪt;jít na rande;Charlotte will go on a date with each man.;English File
 Lekce 1;describing people;living room;ˈlɪvɪŋ ruːm;obývací pokoj;What pictures do you have on the wall in your living room?;English File: n
 Lekce 1;describing people;sense of humour;sens əv ˈhjuːmə;smysl pro humor;I think I have a good sense of humour. I make lots of people laugh.;English File: n
-Lekce 1;describing people;What does she look like?;wɒ dʌz ʃi lʊk laɪk;Jak vypadá?;What does she look like? She’s tall and slim with brown hair.;English File
-Lekce 1;describing people;What is she like?;wɒt ɪz ʃi laɪk;More words in File 1;What is she like? She’s really nice and friendly. Jaká je?;English File
+Lekce 1;fráze, popis člověka;What does she look like?;wɒ dʌz ʃi lʊk laɪk;Jak vypadá?;What does she look like? She’s tall and slim with brown hair.;English File
+Lekce 1;fráze, popis člověka;What is she like?;wɒt ɪz ʃi laɪk;Jaká je?;What is she like? She’s really nice and friendly.;English File
 Lekce 2;základní;alright;ɔːlˈraɪt;v pořádku;It wasn’t awful or nice – it was just alright.;English File: adj
 Lekce 2;základní;announce;əˈnaʊns;oznámit;At 11 o’clock they will announce the results.;English File: v
 Lekce 2;základní;argue;ˈɑːɡjuː;hádat se;We argue about everything.;English File: v
@@ -147,12 +147,10 @@ Lekce 2;základní;madly;ˈmædli;šíleně;They were madly in love.;English Fil
 Lekce 2;základní;marry;ˈmæri;oženit se s;He hoped that she would marry well, perhaps a member of a royal family.;English File: v
 Lekce 2;základní;marry;ˈmæri;vdát se za;He hoped that she would marry well, perhaps a member of a royal family.;English File: v
 Lekce 2;základní;nervous;ˈnɜːvəs;nervózní;Some people were smiling, but others were tense and nervous .;English File: adj
-Lekce 2;základní;nevstřícný;nevstřícná;nevstřícné;;English File
 Lekce 2;základní;noisy;ˈnɔɪzi;hlučný;I couldn’t sleep because it was so noisy.;English File: adj
 Lekce 2;základní;peace;piːs;mír;All the students were fighting for peace and democracy.;English File: n
 Lekce 2;základní;perfect;ˈpɜːfɪkt;perfektní;The place is perfect .;English File: adj
 Lekce 2;základní;planet;ˈplænɪt;planeta;There was only one place to be on the planet that night – and I was there.;English File: n
-Lekce 2;základní;pleɪn;treɪn;I prefer to go by car because I don’t like public transport.;;English File
 Lekce 2;základní;politics;ˈpɒlətɪks;politika;She wasn’t interested in politics.;English File: n
 Lekce 2;základní;property;ˈprɒpəti;majetek;Maurice de Bendern owned a lot of property in Paris and Monaco.;English File: n
 Lekce 2;základní;questionnaire;ˌkwestʃəˈneə;dotazník;In pairs, interview your partner with the holiday questionnaire.;English File: n
@@ -168,7 +166,7 @@ Lekce 2;základní;tense;tens;napjatý;Some people were tense and nervous.;Engli
 Lekce 2;základní;terrible;ˈterəbl;příšerný;The apartment was terrible – really uncomfortable and dirty.;English File: adj
 Lekce 2;základní;uncomfortable;ʌnˈkʌmftəbl;nepohodlný;The bed was really uncomfortable. I couldn’t sleep.;English File: adj
 Lekce 2;základní;unfriendly;ʌnˈfrendli;nepřátelský;The people were really unfriendly. I didn’t like them at all.;English File: adj
-Lekce 2;základní;unhelpful;ʌnˈhelpfl;He didn’t explain any of the dishes.;The waiter was very unhelpful.;English File: adj
+Lekce 2;charakter, služby;unhelpful;ʌnˈhelpfl;neochotný, nevstřícný;The waiter was very unhelpful. He didn’t explain any of the dishes.;English File: adj
 Lekce 2;základní;victory;ˈvɪktəri;vítězství;I was watching Obama’s victory through the faces of all these people.;English File: n
 Lekce 2;základní;vote;vəʊt;hlasování;Have a class vote to decide which ending to listen to.;English File: n
 Lekce 2;základní;warm;wɔːm;teplý;Although it was November, it was a warm night.;English File: adj
@@ -199,7 +197,6 @@ Lekce 2;základní;happy ending;hæpi ˈendɪŋ;šťastný konec;I prefer books 
 Lekce 2;základní;have a good time;hæv ə ɡʊd ˈtaɪm;dobře se bavit;How was the party? Did you have a good time?;English File
 Lekce 2;holidays;hire a bicycle;ˈhaɪər ə ˈbaɪsɪkl;půjčit si kolo;We hired a bicycle by the beach.;English File
 Lekce 2;holidays;hire skis;haɪər skiːz;půjčit si lyže;I’ll hire skis when I go on my skiing trip.;English File
-Lekce 2;základní;I like to go swimming in the sea when I’m on holiday. jít plavat;plachtit;surfovat;;English File
 Lekce 2;základní;in a hurry;ɪn ə ˈhʌri;ve spěchu;She was going very fast because she was in a hurry.;English File
 Lekce 2;základní;news photographer;njuːz fəˈtɒɡrəfə;novinový fotograf;Look at the photo which news photographer Tom Pilston took in 2008.;English File: n
 Lekce 2;základní;nothing special;nʌθɪŋ ˈspeʃl;nic zvláštního;There was nothing special about the hotel. It could be anywhere in the world.;English File
@@ -278,8 +275,7 @@ Lekce 4;obecné;delivery;dɪˈlɪvəri;dodávka, zásilka;When is the delivery c
 Lekce 4;obecné;depressing;dɪˈpresɪŋ;depresivní;Why do you think the news is often depressing?;English File: adj
 Lekce 4;obecné;details;ˈdiːteɪlz;podrobnosti;One person in four invents details about their weekend.;English File: pl n
 Lekce 4;obecné;dishwasher;ˈdɪʃwɒʃə;myčka nádobí;I don’t do the washing up because I have a dishwasher.;English File: n
-Lekce 4;obecné;dyslektický;dyslektická;dyslektické;;English File
-Lekce 4;obecné;dyslexic;dɪsˈleksɪk;When I was at school I had problems reading because I was dyslexic.;;English File: adj
+Lekce 4;obecné;dyslexic;dɪsˈleksɪk;dyslektický;When I was at school I had problems reading because I was dyslexic.;English File: adj
 Lekce 4;obecné;encourage;ɪnˈkʌrɪdʒ;vybízet, povzbuzovat;Networking sites may encourage us to invent details about our social lives.;English File: v
 Lekce 4;obecné;exclusive;ɪkˈskluːsɪv;exkluzivní;Lindka Cierach makes very exclusive clothes for women.;English File: adj
 Lekce 4;obecné;fit;fɪt;pasovat;These shoes don’t fit. They’re too big.;English File: v
@@ -319,7 +315,6 @@ Lekce 4;obecné;do the ironing;du ðə ˈaɪənɪŋ;žehlit;I don’t like to do
 Lekce 4;obecné;do the shopping;du ðə ˈʃɒpɪŋ;nakupovat;We do the shopping together.;English File
 Lekce 4;obecné;do the washing;du ðə ˈwɒʃɪŋ;prát;I do the washing on Mondays.;English File
 Lekce 4;obecné;do the washing up;du ðə wɒʃɪŋ ˈʌp;mýt nádobí;We don’t do the washing up. We have a dishwasher.;English File
-Lekce 4;obecné;dělat zkoušku;cvičení;domácí úkol;;English File
 Lekce 4;obecné;fancy dress party;fænsi ˈdres pɑːti;maškarní večírek;I’m wearing strange clothes because I’m going to a fancy dress party.;English File: n
 Lekce 4;obecné;fashion designer;ˈfæʃn dɪzaɪnə;módní návrhář;Lindka Cierach is a fashion designer.;English File: n
 Lekce 4;obecné;fashion sense;ˈfæʃn sens;vkus;She always dresses well – she has a really good fashion sense.;English File: n
@@ -452,7 +447,7 @@ Lekce 6;opposite verbs;send;send;poslat;I need to send an email to John before t
 Lekce 6;opposite verbs;series;ˈsɪəriːz;řada;Even after seven series of House M.D. he still feels pessimistic about it.;English File: n
 Lekce 6;opposite verbs;start;stɑːt;začít;What time does it start?;English File: v
 Lekce 6;opposite verbs;stop;stɒp;přestat;Please stop making so much noise.;English File: v
-Lekce 6;opposite verbs;strangers;ˈstreɪndʒəz;Complete strangers come up to him in the street and say ‘Cheer up, mate!’ cizinci;;English File: pl n
+Lekce 6;obecné;strangers;ˈstreɪndʒəz;cizí lidé, neznámí lidé;Complete strangers come up to him in the street and say, “Cheer up, mate!”;English File: pl n
 Lekce 6;opposite verbs;success;səkˈses;úspěch;Laurie never thought that House M.D. was going to be a success.;English File: n
 Lekce 6;opposite verbs;talented;ˈtæləntɪd;talentovaný;Like Dr House, Laurie is also a talented musician.;English File: adj
 Lekce 6;opposite verbs;teach;tiːtʃ;vyučovat;I’m going to China to teach English.;English File: v
@@ -524,7 +519,7 @@ Lekce 8;get;advantage;ədˈvɑːntɪdʒ;výhoda;The advantage of not having a ca
 Lekce 8;get;angrily;ˈæŋɡrəli;rozzlobeně;They answered the phone angrily.;English File: adv
 Lekce 8;get;avoid;əˈvɔɪd;vyhýbat se;This seems an easy one – go, but try to avoid her where possible.;English File: v
 Lekce 8;get;blizzard;ˈblɪzəd;blizard;A blizzard is a very bad storm with snow and strong winds.;English File: n
-Lekce 8;get;calmly;ˈkɑːmli;‘Do you think for one moment,’ she said calmly, ‘that I could come to your home while Héloise is there?’ klidně;;English File: adv
+Lekce 8;příslovce;calmly;ˈkɑːmli;klidně;“Do you think for one moment,” she said calmly, “that I could come to your home while Héloise is there?”;English File: adv
 Lekce 8;get;century;ˈsentʃəri;století;In what century do you think the story takes place?;English File: n
 Lekce 8;get;circumstances;ˈsɜːkəmstænsɪz;okolnosti;Are there any circumstances in which you think it’s OK to tell a lie?;English File: pl n
 Lekce 8;get;completely;kəmˈpliːtli;zcela;I can trust you completely .;English File: adv
@@ -543,7 +538,7 @@ Lekce 8;get;hyperactive;ˌhaɪpərˈæktɪv;hyperaktivní;There will be a hypera
 Lekce 8;get;impulse;ˈɪmpʌls;impulz;It was an impulse, but now I’m having second thoughts.;English File: n
 Lekce 8;get;lazily;ˈleɪzɪli;líně;They got up lazily .;English File: adv
 Lekce 8;get;marathon;ˈmærəθən;maraton;My wife is running her first marathon in London.;English File: n
-Lekce 8;get;masterfully;ˈmɑːstəfəli;‘You must be mine.’ autoritativně;‘Vivienne,’ said Hartley, masterfully.;English File: adv
+Lekce 8;příslovce;masterfully;ˈmɑːstəfəli;autoritativně, sebejistě;“Vivienne,” said Hartley, masterfully. “You must be mine.”;English File: adv
 Lekce 8;get;matter;ˈmætə;záležitost;This is a very important matter.;English File: n
 Lekce 8;get;monsoon;mɒnˈsuːn;monzun;A monsoon is when it rains very heavily for three months or more.;English File: n
 Lekce 8;get;obtain;əbˈteɪn;získat;Did you obtain a visa?;English File: v
@@ -569,7 +564,6 @@ Lekce 8;confusing verbs;carry a baby;kæri ə ˈbeɪbi;nést dítě;She is carry
 Lekce 8;confusing verbs;carry a bag;kæri ə ˈbæɡ;nosit tašku;I carry a bag to work every day.;English File
 Lekce 8;get;change your mind;tʃeɪndʒ jɔː maɪnd;změnit názor;If you start planning for the big day, it will make things worse if you then change your mind.;English File
 Lekce 8;get;deeply in love;ˈdiːpli ɪn lʌv;hluboce zamilovaný;I am deeply in love with her, but is this too soon?;English File
-Lekce 8;get;Do you win a prize or is it just for fun? vyhrát cenu;zápas;medaili;;English File
 Lekce 8;confusing verbs;earn a salary;ɜːn ə ˈsæləri;dostávat plat;He earns a salary.;English File
 Lekce 8;confusing verbs;earn money;ɜːn ˈmʌni;vydělávat peníze;She has a part-time job to earn money.;English File
 Lekce 8;confusing verbs;find a job;faɪnd ə ˈdʒɒb;najít práci;I hope I’ll find a job soon.;English File
@@ -731,7 +725,7 @@ Lekce 10;obecné;decision;dɪˈsɪʒn;rozhodnutí;Do you ever worry about making
 Lekce 10;obecné;decisive;dɪˈsaɪsɪv;rozhodný;Do you know anybody who is very decisive?;English File: adj
 Lekce 10;obecné;design;dɪˈzaɪn;navrhnout;To design a new buildling, you need to draw a plan that shows how to make it.;English File: v
 Lekce 10;obecné;discover;dɪˈskʌvə;objevit;Scientists are still trying to discover a cure for cancer.;English File: v
-Lekce 10;obecné;disorganized;dɪsˈɔːɡənaɪzd;I used to be very disorganized, for example I often left my books at home.;;English File: adj
+Lekce 10;obecné;disorganized;dɪsˈɔːɡənaɪzd;neorganizovaný, roztržitý;"I used to be very disorganized; for example, I often left my books at home.";English File: adj
 Lekce 10;obecné;disposable;dɪˈspəʊzəbl;jednorázový;How many disposable nappies are used every day?;English File: adj
 Lekce 10;obecné;dissatisfied;dɪsˈsætɪsfaɪd;nespokojený;Too much choice is making us feel unhappy and dissatisfied.;English File: adj
 Lekce 10;obecné;educate;ˈedʒukeɪt;vzdělávat;Teachers try to educate students.;English File: v
@@ -761,7 +755,6 @@ Lekce 10;obecné;president;ˈprezɪdənt;prezident;The company president saw the
 Lekce 10;obecné;psychology;saɪˈkɒlədʒi;psychologie;Like Holmes, House uses his knowledge of psychology to solve cases.;English File: n
 Lekce 10;obecné;report;rɪˈpɔːt;vysvědčení;When you were at school did you get a report at the end of every year?;English File: n
 Lekce 10;obecné;researcher;ˈriːsɜːtʃə;výzkumník;A researcher has discovered that too much choice makes us feel unhappy.;English File: n
-Lekce 10;obecné;roztržitý;roztržitá;roztržité;;English File
 Lekce 10;obecné;science;ˈsaɪəns;věda;Chemistry, biology, and physics are all science subjects.;English File: n
 Lekce 10;obecné;spoil;spɔɪl;pokazit;Don’t let your bad behaviour spoil your good marks.;English File: v
 Lekce 10;obecné;subjects;səbˈdʒekts;předměty More words in File 10;Did you study any other subjects at primary or secondary school?;English File: pl n
@@ -881,7 +874,7 @@ Lekce 11;expressing movement;turn on;tɜːn ˈɒn;zapnout;Could you turn on the 
 Lekce 11;expressing movement;turn up;tɜːn ˈʌp;zesílit;Turn up the TV! I can’t hear.;English File: phr v
 Lekce 11;expressing movement;World Cup;ˌwɜːld ˈkʌp;Světový pohár;England won the Rugby Wo rl d Cup in 2003 by beating Australia in the last minute of the match.;English File: n
 Lekce 11;expressing movement;write down;raɪt ˈdaʊn;zapsat;Write down my address or you might forget it.;English File: phr v
-Lekce 12;obecné;arrest;əˈrest;He arrived at his local police station and said ‘Please arrest me again!’ zatknout;;English File: v
+Lekce 12;obecné;arrest;əˈrest;zatknout;He arrived at his local police station and said, “Please arrest me again!”;English File: v
 Lekce 12;obecné;genes;dʒiːnz;geny;McAndrew believes that gossiping is in our genes .;English File: pl n
 Lekce 12;obecné;gossip;ˈɡɒsɪp;klepy;Who do people most often gossip about?;English File: n
 Lekce 12;obecné;gossip;ˈɡɒsɪp;pomlouvat;People gossip about celebrities.;English File: v
