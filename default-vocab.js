@@ -414,7 +414,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "n",
     "pronounce": "hæt",
     "example": "Where’s my hat? It’s cold outside!",
-    "cz": "klobouk",
+    "cz": "čepice",
     "type": "word",
     "tags": [
       "describing people"
@@ -426,7 +426,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "n",
     "pronounce": "hæt",
     "example": "Where’s my hat? It’s cold outside!",
-    "cz": "čepice",
+    "cz": "klobouk",
     "type": "word",
     "tags": [
       "describing people"
@@ -714,7 +714,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "adj",
     "pronounce": "red",
     "example": "She has curly red hair.",
-    "cz": "zrzavý (o vlasech)",
+    "cz": "červený (obecně)",
     "type": "word",
     "tags": [
       "describing people"
@@ -726,7 +726,7 @@ window.DEFAULT_VOCABULARY = [
     "pos": "adj",
     "pronounce": "red",
     "example": "She has curly red hair.",
-    "cz": "červený (obecně)",
+    "cz": "zrzavý (o vlasech)",
     "type": "word",
     "tags": [
       "describing people"
@@ -1194,10 +1194,10 @@ window.DEFAULT_VOCABULARY = [
     "pos": "adj",
     "pronounce": "ˌʌnˈkaɪnd",
     "example": "Don’t be so unkind. It’s not nice.",
-    "cz": "nepříjemný Things you wear",
+    "cz": "nepříjemný, nelaskavý",
     "type": "word",
     "tags": [
-      "describing people"
+      "charakter"
     ],
     "deck": "Lekce 1"
   },
@@ -1341,7 +1341,8 @@ window.DEFAULT_VOCABULARY = [
     "cz": "Jak vypadá?",
     "type": "phrase",
     "tags": [
-      "describing people"
+      "fráze",
+      "popis člověka"
     ],
     "deck": "Lekce 1"
   },
@@ -1349,11 +1350,12 @@ window.DEFAULT_VOCABULARY = [
     "en": "What is she like?",
     "pos": "",
     "pronounce": "wɒt ɪz ʃi laɪk",
-    "example": "What is she like? She’s really nice and friendly. Jaká je?",
-    "cz": "More words in File 1",
+    "example": "What is she like? She’s really nice and friendly.",
+    "cz": "Jaká je?",
     "type": "phrase",
     "tags": [
-      "describing people"
+      "fráze",
+      "popis člověka"
     ],
     "deck": "Lekce 1"
   },
@@ -1778,18 +1780,6 @@ window.DEFAULT_VOCABULARY = [
     "deck": "Lekce 2"
   },
   {
-    "en": "nevstřícný",
-    "pos": "",
-    "pronounce": "nevstřícná",
-    "example": "",
-    "cz": "nevstřícné",
-    "type": "word",
-    "tags": [
-      "základní"
-    ],
-    "deck": "Lekce 2"
-  },
-  {
     "en": "noisy",
     "pos": "adj",
     "pronounce": "ˈnɔɪzi",
@@ -1831,18 +1821,6 @@ window.DEFAULT_VOCABULARY = [
     "pronounce": "ˈplænɪt",
     "example": "There was only one place to be on the planet that night – and I was there.",
     "cz": "planeta",
-    "type": "word",
-    "tags": [
-      "základní"
-    ],
-    "deck": "Lekce 2"
-  },
-  {
-    "en": "pleɪn",
-    "pos": "",
-    "pronounce": "treɪn",
-    "example": "",
-    "cz": "I prefer to go by car because I don’t like public transport.",
     "type": "word",
     "tags": [
       "základní"
@@ -2033,11 +2011,12 @@ window.DEFAULT_VOCABULARY = [
     "en": "unhelpful",
     "pos": "adj",
     "pronounce": "ʌnˈhelpfl",
-    "example": "The waiter was very unhelpful.",
-    "cz": "He didn’t explain any of the dishes.",
+    "example": "The waiter was very unhelpful. He didn’t explain any of the dishes.",
+    "cz": "neochotný, nevstřícný",
     "type": "word",
     "tags": [
-      "základní"
+      "charakter",
+      "služby"
     ],
     "deck": "Lekce 2"
   },
@@ -2400,18 +2379,6 @@ window.DEFAULT_VOCABULARY = [
     ],
     "pos": "",
     "type": "phrase"
-  },
-  {
-    "en": "I like to go swimming in the sea when I’m on holiday. jít plavat",
-    "pos": "",
-    "pronounce": "plachtit",
-    "example": "",
-    "cz": "surfovat",
-    "type": "phrase",
-    "tags": [
-      "základní"
-    ],
-    "deck": "Lekce 2"
   },
   {
     "en": "in a hurry",
@@ -3350,23 +3317,11 @@ window.DEFAULT_VOCABULARY = [
     "deck": "Lekce 4"
   },
   {
-    "en": "dyslektický",
-    "pos": "",
-    "pronounce": "dyslektická",
-    "example": "",
-    "cz": "dyslektické",
-    "type": "word",
-    "tags": [
-      "obecné"
-    ],
-    "deck": "Lekce 4"
-  },
-  {
     "en": "dyslexic",
     "pos": "adj",
     "pronounce": "dɪsˈleksɪk",
-    "example": "",
-    "cz": "When I was at school I had problems reading because I was dyslexic.",
+    "example": "When I was at school I had problems reading because I was dyslexic.",
+    "cz": "dyslektický",
     "type": "word",
     "tags": [
       "obecné"
@@ -3835,18 +3790,6 @@ window.DEFAULT_VOCABULARY = [
     "pronounce": "du ðə wɒʃɪŋ ˈʌp",
     "example": "We don’t do the washing up. We have a dishwasher.",
     "cz": "mýt nádobí",
-    "type": "phrase",
-    "tags": [
-      "obecné"
-    ],
-    "deck": "Lekce 4"
-  },
-  {
-    "en": "dělat zkoušku",
-    "pos": "",
-    "pronounce": "cvičení",
-    "example": "",
-    "cz": "domácí úkol",
     "type": "phrase",
     "tags": [
       "obecné"
@@ -5441,11 +5384,11 @@ window.DEFAULT_VOCABULARY = [
     "en": "strangers",
     "pos": "pl n",
     "pronounce": "ˈstreɪndʒəz",
-    "example": "",
-    "cz": "Complete strangers come up to him in the street and say ‘Cheer up, mate!’ cizinci",
+    "example": "Complete strangers come up to him in the street and say, “Cheer up, mate!”",
+    "cz": "cizí lidé, neznámí lidé",
     "type": "word",
     "tags": [
-      "opposite verbs"
+      "obecné"
     ],
     "deck": "Lekce 6"
   },
@@ -6305,11 +6248,11 @@ window.DEFAULT_VOCABULARY = [
     "en": "calmly",
     "pos": "adv",
     "pronounce": "ˈkɑːmli",
-    "example": "",
-    "cz": "‘Do you think for one moment,’ she said calmly, ‘that I could come to your home while Héloise is there?’ klidně",
+    "example": "“Do you think for one moment,” she said calmly, “that I could come to your home while Héloise is there?”",
+    "cz": "klidně",
     "type": "word",
     "tags": [
-      "get"
+      "příslovce"
     ],
     "deck": "Lekce 8"
   },
@@ -6533,11 +6476,11 @@ window.DEFAULT_VOCABULARY = [
     "en": "masterfully",
     "pos": "adv",
     "pronounce": "ˈmɑːstəfəli",
-    "example": "‘Vivienne,’ said Hartley, masterfully.",
-    "cz": "‘You must be mine.’ autoritativně",
+    "example": "“Vivienne,” said Hartley, masterfully. “You must be mine.”",
+    "cz": "autoritativně, sebejistě",
     "type": "word",
     "tags": [
-      "get"
+      "příslovce"
     ],
     "deck": "Lekce 8"
   },
@@ -6835,18 +6778,6 @@ window.DEFAULT_VOCABULARY = [
     "pronounce": "ˈdiːpli ɪn lʌv",
     "example": "I am deeply in love with her, but is this too soon?",
     "cz": "hluboce zamilovaný",
-    "type": "phrase",
-    "tags": [
-      "get"
-    ],
-    "deck": "Lekce 8"
-  },
-  {
-    "en": "Do you win a prize or is it just for fun? vyhrát cenu",
-    "pos": "",
-    "pronounce": "zápas",
-    "example": "",
-    "cz": "medaili",
     "type": "phrase",
     "tags": [
       "get"
@@ -8789,8 +8720,8 @@ window.DEFAULT_VOCABULARY = [
     "en": "disorganized",
     "pos": "adj",
     "pronounce": "dɪsˈɔːɡənaɪzd",
-    "example": "",
-    "cz": "I used to be very disorganized, for example I often left my books at home.",
+    "example": "I used to be very disorganized; for example, I often left my books at home.",
+    "cz": "neorganizovaný, roztržitý",
     "type": "word",
     "tags": [
       "obecné"
@@ -9139,18 +9070,6 @@ window.DEFAULT_VOCABULARY = [
     "pronounce": "ˈriːsɜːtʃə",
     "example": "A researcher has discovered that too much choice makes us feel unhappy.",
     "cz": "výzkumník",
-    "type": "word",
-    "tags": [
-      "obecné"
-    ],
-    "deck": "Lekce 10"
-  },
-  {
-    "en": "roztržitý",
-    "pos": "",
-    "pronounce": "roztržitá",
-    "example": "",
-    "cz": "roztržité",
     "type": "word",
     "tags": [
       "obecné"
@@ -10589,8 +10508,8 @@ window.DEFAULT_VOCABULARY = [
     "en": "arrest",
     "pos": "v",
     "pronounce": "əˈrest",
-    "example": "",
-    "cz": "He arrived at his local police station and said ‘Please arrest me again!’ zatknout",
+    "example": "He arrived at his local police station and said, “Please arrest me again!”",
+    "cz": "zatknout",
     "type": "word",
     "tags": [
       "obecné"
