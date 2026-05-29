@@ -5,7 +5,7 @@ const LISTEN_STORAGE_KEY = "vocabTrainerListenText";
 const READER_STORAGE_KEY = "vocabTrainerReaderText";
 const READER_HISTORY_KEY = "vocabTrainerReaderHistory";
 const VOICE_SETTINGS_KEY = "vocabTrainerVoiceSettings";
-const PRESET_VERSION = 15;
+const PRESET_VERSION = 17;
 const SMART_LIMIT = 20;
 const SERVER_VOCAB_URL = "data/default-vocab.csv";
 const DEFAULT_WORDS = Array.isArray(window.DEFAULT_VOCABULARY) ? window.DEFAULT_VOCABULARY : [];
@@ -131,17 +131,136 @@ Pravidla:
 - Připrav anglický text podle tématu, které zadám.
 - Věty udržuj krátké a čitelné.
 - Do VOCAB vlož všechny významové výrazy z textu: podstatná jména, slovesa, přídavná jména, příslovce, důležité předložkové vazby a fráze.
+- Do VOCAB vlož opravdu každé důležité klikatelné slovo z textu, nejen nová slovíčka. U textu z učebnice raději přidej víc slov než míň.
 - Do VOCAB vždy vlož všechna slovesa přesně v tom tvaru, ve kterém jsou v textu, hlavně tvary minulého času, například was, were, went, gave, became, worked, painted.
+- Do VOCAB vlož také základní tvary a běžné tvary, které jsou v textu: jednotné i množné číslo, přítomný čas, minulý čas, -ing tvar.
 - U pravidelných sloves v minulém čase napiš překlad minulého času, například worked = pracoval, moved = přestěhoval se, wanted = chtěl.
 - U nepravidelných sloves v minulém čase napiš překlad minulého času, například was = byl, went = šel / jel, gave = dal, became = stal se.
 - Pokud je důležitá fráze, dej ji do VOCAB jako celou frázi, například hired a car = půjčil si auto.
 - Fráze mají přednost před jednotlivými slovy.
 - Každá věta z TEXT musí být také v SENTENCES se svým českým překladem.
+- Zachovej odstavce, číslování a odřádkování v sekci TEXT stejně jako ve vstupním textu.
+- V SENTENCES zachovej stejné pořadí vět jako v TEXT. Pokud je věta očíslovaná, nech číslo i v SENTENCES.
 - Nepiš vysvětlení, odrážky ani markdown.
 - Nepoužívej středník jako oddělovač.
 
 Téma / moje poznámky:
 [vložím text]`;
+
+const READER_COMMON_VOCAB = {
+  a: "neurčitý člen",
+  an: "neurčitý člen",
+  the: "určitý člen",
+  and: "a",
+  or: "nebo",
+  but: "ale",
+  because: "protože",
+  so: "takže",
+  if: "jestli, pokud",
+  when: "když, kdy",
+  where: "kde, kam",
+  who: "kdo",
+  what: "co, jaký",
+  why: "proč",
+  how: "jak",
+  from: "z, od",
+  to: "do, k",
+  in: "v",
+  on: "na",
+  at: "v, u",
+  for: "pro",
+  with: "s",
+  without: "bez",
+  of: "z, od",
+  into: "do",
+  over: "přes, nad",
+  under: "pod",
+  after: "po",
+  before: "před",
+  he: "on",
+  she: "ona",
+  it: "to",
+  they: "oni",
+  we: "my",
+  you: "ty, vy",
+  i: "já",
+  his: "jeho",
+  her: "její",
+  their: "jejich",
+  our: "náš",
+  my: "můj",
+  is: "je",
+  are: "jsou",
+  was: "byl, byla, bylo",
+  were: "byli, byly",
+  be: "být",
+  will: "bude",
+  would: "by",
+  can: "může, umí",
+  could: "mohl",
+  do: "dělat",
+  did: "dělal, udělal",
+  have: "mít",
+  has: "má",
+  had: "měl",
+  said: "řekl",
+  says: "říká",
+  went: "šel, jel",
+  go: "jít, jet",
+  get: "dostat, získat",
+  got: "dostal, získal",
+  make: "dělat, vytvořit",
+  made: "udělal, vyrobil",
+  take: "vzít",
+  took: "vzal",
+  give: "dát",
+  gave: "dal",
+  become: "stát se",
+  became: "stal se",
+  buy: "koupit",
+  bought: "koupil",
+  see: "vidět",
+  saw: "viděl",
+  know: "vědět, znát",
+  knew: "věděl, znal",
+  people: "lidé",
+  school: "škola",
+  students: "studenti",
+  text: "text",
+  word: "slovo",
+  words: "slova",
+  lesson: "lekce",
+  page: "stránka",
+  story: "příběh",
+  time: "čas",
+  day: "den",
+  year: "rok",
+  world: "svět",
+  company: "společnost, firma",
+  building: "budova",
+  house: "dům",
+  flat: "byt",
+  flats: "byty",
+  center: "centrum",
+  centre: "centrum",
+  public: "veřejný",
+  community: "komunita, obec",
+  fashion: "móda",
+  brand: "značka",
+  store: "obchod",
+  history: "historie",
+  historical: "historický",
+  previous: "předchozí",
+  former: "bývalý",
+  first: "první",
+  young: "mladý",
+  old: "starý",
+  new: "nový",
+  good: "dobrý",
+  bad: "špatný",
+  big: "velký",
+  small: "malý",
+};
 
 const IRREGULAR_VERBS = [
   ["be", "bí", "was / were", "woz / wér", "být", "I am at home.", "I was at home yesterday.", "been"],
@@ -799,6 +918,7 @@ function parseReaderText(text) {
     text: "",
     vocab: [],
     sentenceTranslations: new Map(),
+    sentenceTranslationList: [],
     errors: [],
   };
   let section = "";
@@ -845,7 +965,10 @@ function parseReaderText(text) {
         result.errors.push({ line: index + 1, text: original, message: "Řádek věty není ve formátu anglická věta = překlad." });
         return;
       }
-      result.sentenceTranslations.set(sentenceKey(match[1]), normalize(match[2]));
+      const enSentence = normalize(match[1]);
+      const czSentence = normalize(match[2]);
+      result.sentenceTranslations.set(sentenceKey(enSentence), czSentence);
+      result.sentenceTranslationList.push({ en: enSentence, cz: czSentence });
       return;
     }
 
@@ -860,7 +983,11 @@ function parseReaderText(text) {
 
 function mergeReaderVocab(vocab, words) {
   const map = new Map();
-  [...vocab, ...words.map((word) => ({ en: word.en, cz: word.cz }))].forEach((item) => {
+  [
+    ...vocab,
+    ...words.map((word) => ({ en: word.en, cz: word.cz })),
+    ...Object.entries(READER_COMMON_VOCAB).map(([en, cz]) => ({ en, cz })),
+  ].forEach((item) => {
     const en = normalize(item.en);
     const cz = normalize(item.cz);
     if (!en || !cz) return;
@@ -876,16 +1003,36 @@ function readerKey(value) {
 
 function sentenceKey(value) {
   return normalize(value)
+    .replace(/^\s*\d+[\).]\s*/, "")
     .replace(/\s+/g, " ")
     .replace(/[“”]/g, '"')
     .replace(/[‘’]/g, "'")
     .toLocaleLowerCase("en-US");
 }
 
-function splitReaderSentences(text) {
-  return String(text || "")
-    .replace(/\n+/g, " ")
-    .match(/[^.!?]+[.!?]+|[^.!?]+$/g)?.map(normalize).filter(Boolean) || [];
+function splitReaderLineSentences(line) {
+  return String(line || "")
+    .match(/[^.!?]+[.!?]+["”']?|[^.!?]+$/g)?.map(normalize).filter(Boolean) || [];
+}
+
+function splitReaderSegments(text) {
+  const lines = String(text || "").split(/\n/);
+  const segments = [];
+
+  lines.forEach((line, lineIndex) => {
+    if (!normalize(line)) {
+      segments.push({ type: "break", blank: true });
+      return;
+    }
+
+    splitReaderLineSentences(line).forEach((sentence) => {
+      segments.push({ type: "sentence", text: sentence });
+    });
+
+    if (lineIndex < lines.length - 1) segments.push({ type: "break" });
+  });
+
+  return segments;
 }
 
 function findReaderMatches(sentence, vocab) {
@@ -1105,6 +1252,7 @@ function render() {
     readerPrompt: renderReaderPrompt,
   };
   app.innerHTML = (views[state.view] || renderHome)();
+  if (state.view === "reader") requestAnimationFrame(positionReaderBubbles);
 }
 
 function renderHome() {
@@ -1655,7 +1803,8 @@ function renderCustomListen() {
 function renderReader() {
   const reader = state.reader;
   const parsed = reader.parsed || parseReaderText(reader.text);
-  const sentences = splitReaderSentences(parsed.text);
+  const segments = splitReaderSegments(parsed.text);
+  const sentenceCount = segments.filter((segment) => segment.type === "sentence").length;
   const history = reader.history || [];
 
   return `
@@ -1665,13 +1814,13 @@ function renderReader() {
         <div class="section-head">
           <div>
             <h2>${escapeHtml(parsed.title)}</h2>
-            <p class="muted">${sentences.length} vět · ${parsed.vocab.length} slov/frází ve slovníku</p>
+            <p class="muted">${sentenceCount} vět · ${parsed.vocab.length} slov/frází ve slovníku</p>
           </div>
         </div>
         <p class="muted">Kliknutí na slovo/frázi zobrazí překlad. Dvojklik na větu zobrazí překlad celé věty.</p>
       </article>
       <article class="reader-card">
-        ${sentences.length ? sentences.map((sentence, index) => renderReaderSentence(sentence, index, parsed)).join(" ") : `<p class="muted">Načti text pro čtení.</p>`}
+        ${sentenceCount ? renderReaderSegments(segments, parsed) : `<p class="muted">Načti text pro čtení.</p>`}
       </article>
       <div class="panel stack">
         <div class="import-help">
@@ -1708,9 +1857,19 @@ function renderReader() {
   `;
 }
 
+function renderReaderSegments(segments, parsed) {
+  let sentenceIndex = 0;
+  return segments.map((segment) => {
+    if (segment.type === "break") return `<br>${segment.blank ? "<br>" : ""}`;
+    const html = renderReaderSentence(segment.text, sentenceIndex, parsed);
+    sentenceIndex += 1;
+    return html;
+  }).join(" ");
+}
+
 function renderReaderSentence(sentence, sentenceIndex, parsed) {
   const sentenceId = String(sentenceIndex);
-  const sentenceTranslation = parsed.sentenceTranslations.get(sentenceKey(sentence)) || "Překlad této věty není v podkladu.";
+  const sentenceTranslation = getReaderSentenceTranslation(sentence, sentenceIndex, parsed);
   const showSentence = state.reader.selectedSentence === sentenceId;
   const matches = findReaderMatches(sentence, parsed.vocab);
   let cursor = 0;
@@ -1723,7 +1882,7 @@ function renderReaderSentence(sentence, sentenceIndex, parsed) {
     const selected = state.reader.selectedToken === tokenId;
     parts.push(`
       <span class="reader-token ${selected ? "active" : ""} ${match.missing ? "missing" : ""} ${match.type === "phrase" ? "phrase" : ""}" data-action="reader-token" data-token="${tokenId}" data-sentence="${sentenceId}" data-translation="${escapeHtml(match.cz)}">
-        ${selected ? `<span class="reader-bubble">${escapeHtml(match.cz)}</span>` : ""}
+        ${selected ? `<span class="reader-bubble" data-reader-bubble>${escapeHtml(match.cz)}</span>` : ""}
         ${escapeHtml(match.en)}
       </span>
     `);
@@ -1735,10 +1894,21 @@ function renderReaderSentence(sentence, sentenceIndex, parsed) {
 
   return `
     <span class="reader-sentence ${showSentence ? "active" : ""}" data-action="reader-sentence" data-sentence="${sentenceId}" data-translation="${escapeHtml(sentenceTranslation)}">
-      ${showSentence ? `<span class="reader-sentence-translation">${escapeHtml(sentenceTranslation)}</span>` : ""}
+      ${showSentence ? `<span class="reader-sentence-translation" data-reader-bubble>${escapeHtml(sentenceTranslation)}</span>` : ""}
       ${parts.join("")}
     </span>
   `;
+}
+
+function getReaderSentenceTranslation(sentence, sentenceIndex, parsed) {
+  const direct = parsed.sentenceTranslations.get(sentenceKey(sentence));
+  if (direct) return direct;
+
+  const numbered = sentence.replace(/^\s*\d+[\).]\s*/, "");
+  const withoutNumber = parsed.sentenceTranslations.get(sentenceKey(numbered));
+  if (withoutNumber) return withoutNumber;
+
+  return parsed.sentenceTranslationList[sentenceIndex]?.cz || "Překlad této věty není v podkladu. Přidej ji do sekce SENTENCES.";
 }
 
 function toCsv(words) {
@@ -2101,6 +2271,30 @@ function toggleReaderSentence(sentence) {
   render();
 }
 
+function positionReaderBubbles() {
+  document.querySelectorAll("[data-reader-bubble]").forEach((bubble) => {
+    const anchor = bubble.closest(".reader-token, .reader-sentence");
+    if (!anchor) return;
+
+    bubble.style.left = "8px";
+    bubble.style.top = "8px";
+    const anchorRect = anchor.getBoundingClientRect();
+    const bubbleRect = bubble.getBoundingClientRect();
+    const margin = 8;
+    const maxLeft = Math.max(margin, window.innerWidth - bubbleRect.width - margin);
+    let left = Math.min(Math.max(anchorRect.left, margin), maxLeft);
+    let top = anchorRect.top - bubbleRect.height - margin;
+
+    if (top < margin) top = anchorRect.bottom + margin;
+    if (top + bubbleRect.height > window.innerHeight - margin) {
+      top = Math.max(margin, window.innerHeight - bubbleRect.height - margin);
+    }
+
+    bubble.style.left = `${Math.round(left)}px`;
+    bubble.style.top = `${Math.round(top)}px`;
+  });
+}
+
 function handleReaderClick(target, detail) {
   if (readerTapTimer) {
     clearTimeout(readerTapTimer);
@@ -2451,6 +2645,8 @@ app.addEventListener("pointerdown", (event) => {
 app.addEventListener("pointerup", cancelReaderHold);
 app.addEventListener("pointercancel", cancelReaderHold);
 app.addEventListener("pointerleave", cancelReaderHold);
+window.addEventListener("resize", positionReaderBubbles);
+window.addEventListener("scroll", positionReaderBubbles, { passive: true });
 app.addEventListener("contextmenu", (event) => {
   const target = event.target.closest("[data-action='reader-token'], [data-action='reader-sentence']");
   if (!target) return;

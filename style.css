@@ -362,6 +362,7 @@ input[type="range"] {
   padding: 18px;
   font-size: 1.18rem;
   line-height: 1.85;
+  overflow-wrap: anywhere;
 }
 
 .reader-sentence {
@@ -397,22 +398,22 @@ input[type="range"] {
 }
 
 .reader-token.missing {
-  opacity: 0.7;
+  color: var(--muted);
 }
 
 .reader-token.missing.active {
-  background: var(--danger-soft);
-  color: var(--text);
+  background: #ffe66d;
+  color: #202124;
 }
 
 .reader-bubble,
 .reader-sentence-translation {
-  position: absolute;
-  left: 0;
-  bottom: calc(100% + 6px);
-  z-index: 2;
+  position: fixed;
+  left: 8px;
+  top: 8px;
+  z-index: 20;
   width: max-content;
-  max-width: min(280px, 80vw);
+  max-width: calc(100vw - 16px);
   padding: 7px 9px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -424,7 +425,7 @@ input[type="range"] {
 }
 
 .reader-sentence-translation {
-  bottom: calc(100% + 10px);
+  max-width: calc(100vw - 16px);
   background: var(--surface-soft);
 }
 
